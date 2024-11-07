@@ -1,4 +1,4 @@
-package apperr
+package response
 
 const (
 	Success           Code = "CS0000"

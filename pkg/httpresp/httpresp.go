@@ -2,12 +2,16 @@ package httpresp
 
 import (
 	"fmt"
-	"github.com/andibalo/meowhasiswa-be/pkg/apperr"
+	"github.com/andibalo/meowhasiswa-be/internal/response"
 	"github.com/gin-gonic/gin"
 	"github.com/samber/oops"
 	"net/http"
 	"reflect"
 	"time"
+)
+
+const (
+	StatusCodeCtxKey = "httpStatusCode"
 )
 
 type Meta struct {
@@ -44,7 +48,7 @@ type HTTPErrResp struct {
 func HttpRespError(c *gin.Context, err error) {
 
 	statusCode := http.StatusInternalServerError
-	respCode := apperr.ServerError.AsString()
+	respCode := response.ServerError.AsString()
 
 	oopsErr, ok := oops.AsOops(err)
 
@@ -52,7 +56,7 @@ func HttpRespError(c *gin.Context, err error) {
 		respCode = oopsErr.Code()
 		errCtx := oopsErr.Context()
 
-		sc, exists := errCtx["httpStatusCode"]
+		sc, exists := errCtx[StatusCodeCtxKey]
 		if exists {
 			statusCode = sc.(int)
 		}
@@ -74,7 +78,7 @@ func HttpRespError(c *gin.Context, err error) {
 	c.Set("status", http.StatusText(statusCode))
 	c.Set("error", fmt.Sprintf("%s %s [%d] %s", c.Request.Method, c.Request.RequestURI, statusCode, http.StatusText(statusCode)))
 
-	c.AbortWithStatusJSON(statusCode, jsonErrResp)
+	c.JSON(statusCode, jsonErrResp)
 }
 
 func HttpRespSuccess(c *gin.Context, data interface{}, pagination *Pagination) {

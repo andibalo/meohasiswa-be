@@ -42,7 +42,7 @@ func NewServer(cfg config.Config, tracer *trace.Tracer, db *bun.DB) *Server {
 
 	notifSvc := notifsvc.NewNotificationService(cfg, hc)
 
-	authSvc := service.NewAuthService(cfg, userRepo)
+	authSvc := service.NewAuthService(cfg, userRepo, db)
 	userSvc := service.NewUserService(cfg, notifSvc)
 
 	uc := v1.NewUserController(cfg, userSvc)

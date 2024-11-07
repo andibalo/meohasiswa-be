@@ -27,18 +27,18 @@ type User struct {
 type UserVerifyEmail struct {
 	bun.BaseModel `bun:"table:user_verify_email,alias:uve"`
 
-	ID         string
-	UserID     string
-	SecretCode string
-	Email      string
-	IsUsed     bool
-	ExpiredAt  time.Time `bun:",nullzero"`
-	CreatedBy  string
-	CreatedAt  time.Time `bun:",nullzero,default:now()"`
-	UpdatedBy  *string
-	UpdatedAt  bun.NullTime
-	DeletedBy  *string
-	DeletedAt  time.Time `bun:",nullzero,soft_delete"`
+	ID        string
+	UserID    string
+	Code      string
+	Email     string
+	IsUsed    bool
+	ExpiredAt time.Time `bun:",nullzero"`
+	CreatedBy string
+	CreatedAt time.Time `bun:",nullzero,default:now()"`
+	UpdatedBy *string
+	UpdatedAt bun.NullTime
+	DeletedBy *string
+	DeletedAt time.Time `bun:",nullzero,soft_delete"`
 }
 
 type UserDevice struct {

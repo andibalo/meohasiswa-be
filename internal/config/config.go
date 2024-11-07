@@ -31,6 +31,7 @@ type Config interface {
 	GetNotifSvcCfg() NotifSvc
 
 	GetFlags() Flag
+	GetAuthCfg() Auth
 }
 
 type AppConfig struct {
@@ -41,6 +42,7 @@ type AppConfig struct {
 	Http     http
 	NotifSvc NotifSvc
 	Flag     Flag
+	Auth     Auth
 }
 
 type app struct {
@@ -81,6 +83,10 @@ type http struct {
 
 type Flag struct {
 	EnableTracer bool
+}
+
+type Auth struct {
+	UserSecretCodeExpiryMins int
 }
 
 func InitConfig() *AppConfig {
@@ -151,6 +157,9 @@ func InitConfig() *AppConfig {
 		Flag: Flag{
 			EnableTracer: viper.GetBool("ENABLE_TRACER"),
 		},
+		Auth: Auth{
+			UserSecretCodeExpiryMins: viper.GetInt("USER_SECRET_CODE_EXPIRY_MINS"),
+		},
 	}
 }
 
@@ -207,6 +216,11 @@ func (c *AppConfig) HttpExternalServiceTimeout() int64 {
 func (c *AppConfig) GetNotifSvcCfg() NotifSvc {
 	return c.NotifSvc
 }
+
 func (c *AppConfig) GetFlags() Flag {
 	return c.Flag
+}
+
+func (c *AppConfig) GetAuthCfg() Auth {
+	return c.Auth
 }
