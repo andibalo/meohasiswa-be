@@ -38,17 +38,20 @@ func NewServer(cfg config.Config, tracer *trace.Tracer, db *bun.DB) *Server {
 
 	hc := httpclient.Init(httpclient.Options{Config: cfg})
 
+	subThreadRepo := repository.NewSubThreadRepository(db)
 	userRepo := repository.NewUserRepository(db)
 
 	notifSvc := notifsvc.NewNotificationService(cfg, hc)
 
 	authSvc := service.NewAuthService(cfg, userRepo, db)
 	userSvc := service.NewUserService(cfg, notifSvc)
+	subThreadSvc := service.NewSubThreadService(cfg, subThreadRepo, db)
 
 	uc := v1.NewUserController(cfg, userSvc)
 	ac := v1.NewAuthController(cfg, authSvc)
+	stc := v1.NewSubThreadController(cfg, subThreadSvc)
 
-	registerHandlers(router, &api.HealthCheck{}, uc, ac)
+	registerHandlers(router, &api.HealthCheck{}, uc, ac, stc)
 
 	return &Server{
 		gin: router,

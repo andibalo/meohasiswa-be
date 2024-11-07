@@ -46,7 +46,7 @@ func (h *AuthController) Register(c *gin.Context) {
 
 	err := h.authSvc.Register(c.Request.Context(), data)
 	if err != nil {
-		h.cfg.Logger().Error("[Register] Failed to create user", zap.Error(err))
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[Register] Failed to register user", zap.Error(err))
 		httpresp.HttpRespError(c, err)
 		return
 	}
@@ -68,7 +68,7 @@ func (h *AuthController) Login(c *gin.Context) {
 
 	token, err := h.authSvc.Login(c.Request.Context(), data)
 	if err != nil {
-		h.cfg.Logger().Error("[Login] Failed to login", zap.Error(err))
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[Login] Failed to login", zap.Error(err))
 		httpresp.HttpRespError(c, err)
 		return
 	}

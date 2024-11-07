@@ -13,3 +13,8 @@ type AuthService interface {
 	Register(ctx context.Context, req request.RegisterUserReq) error
 	Login(ctx context.Context, req request.LoginUserReq) (token string, err error)
 }
+
+type SubThreadService interface {
+	CreateSubThread(ctx context.Context, req request.CreateSubThreadReq) error
+	FollowSubThread(ctx context.Context, req request.FollowSubThreadReq) error
+}

@@ -14,3 +14,12 @@ type UserRepository interface {
 	GetUserVerifyEmailByID(id string) (*model.UserVerifyEmail, error)
 	SetUserVerifyEmailToUsedTx(id string, tx bun.Tx) error
 }
+
+type SubThreadRepository interface {
+	Save(subThread *model.SubThread) error
+	SaveTx(subThread *model.SubThread, tx bun.Tx) error
+	GetByID(subThreadID string) (*model.SubThread, error)
+	GetByName(name string) (*model.SubThread, error)
+	IncrementFollowersCountTx(subThreadID string, tx bun.Tx) error
+	SaveSubThreadFollowerTx(subthreadFollower *model.SubThreadFollower, tx bun.Tx) error
+}

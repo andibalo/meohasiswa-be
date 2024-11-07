@@ -42,30 +42,30 @@ func (s *authService) Register(ctx context.Context, req request.RegisterUserReq)
 
 	existingUser, err := s.userRepo.GetByEmail(req.Email)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		s.cfg.Logger().Error("[Register] Failed to get user by email", zap.Error(err))
+		s.cfg.Logger().ErrorWithContext(ctx, "[Register] Failed to get user by email", zap.Error(err))
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Invalid Email/Password")
 	}
 
 	if existingUser != nil {
-		s.cfg.Logger().Error("[Register] User already exists")
+		s.cfg.Logger().ErrorWithContext(ctx, "[Register] User already exists")
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("User already exists")
 	}
 
-	user, err := s.mapCreateUserReqToUserModel(req)
+	user, err := s.mapCreateUserReqToUserModel(ctx, req)
 	if err != nil {
-		s.cfg.Logger().Error("[Register] Failed to map payload to user model", zap.Error(err))
+		s.cfg.Logger().ErrorWithContext(ctx, "[Register] Failed to map payload to user model", zap.Error(err))
 		return oops.Wrapf(err, "[Register] Failed to map payload to user model")
 	}
 
 	tx, err := s.db.Begin()
 	if err != nil {
-		s.cfg.Logger().Error("[Register] Failed to begin transaction", zap.Error(err))
+		s.cfg.Logger().ErrorWithContext(ctx, "[Register] Failed to begin transaction", zap.Error(err))
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
 	}
 
 	err = s.userRepo.SaveTx(user, tx)
 	if err != nil {
-		s.cfg.Logger().Error("[Register] Failed to insert user to database", zap.Error(err))
+		s.cfg.Logger().ErrorWithContext(ctx, "[Register] Failed to insert user to database", zap.Error(err))
 		tx.Rollback()
 
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
@@ -83,7 +83,7 @@ func (s *authService) Register(ctx context.Context, req request.RegisterUserReq)
 
 	err = s.userRepo.SaveUserVerifyEmailTx(userVerifyEmail, tx)
 	if err != nil {
-		s.cfg.Logger().Error("[Register] Failed to insert user verify email to database", zap.Error(err))
+		s.cfg.Logger().ErrorWithContext(ctx, "[Register] Failed to insert user verify email to database", zap.Error(err))
 		tx.Rollback()
 
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
@@ -91,7 +91,7 @@ func (s *authService) Register(ctx context.Context, req request.RegisterUserReq)
 
 	err = tx.Commit()
 	if err != nil {
-		s.cfg.Logger().Error("[Register] Failed to commit transaction", zap.Error(err))
+		s.cfg.Logger().ErrorWithContext(ctx, "[Register] Failed to commit transaction", zap.Error(err))
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
 	}
 
@@ -112,11 +112,11 @@ func (s *authService) Register(ctx context.Context, req request.RegisterUserReq)
 	return nil
 }
 
-func (s *authService) mapCreateUserReqToUserModel(data request.RegisterUserReq) (*model.User, error) {
+func (s *authService) mapCreateUserReqToUserModel(ctx context.Context, data request.RegisterUserReq) (*model.User, error) {
 
 	hasedPassword, err := pkg.HashPassword(data.Password)
 	if err != nil {
-		s.cfg.Logger().Error("[mapCreateUserReqToUserModel] Failed to hash password", zap.Error(err))
+		s.cfg.Logger().ErrorWithContext(ctx, "[mapCreateUserReqToUserModel] Failed to hash password", zap.Error(err))
 
 		return nil, oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
 	}
@@ -141,23 +141,23 @@ func (s *authService) Login(ctx context.Context, req request.LoginUserReq) (toke
 	existingUser, err := s.userRepo.GetByEmail(req.Email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			s.cfg.Logger().Error("[Login] Invalid email/password", zap.Error(err))
+			s.cfg.Logger().ErrorWithContext(ctx, "[Login] Invalid email/password", zap.Error(err))
 			return "", oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("Invalid Email/Password")
 		}
 
-		s.cfg.Logger().Error("[Login] Failed to get user by email", zap.Error(err))
+		s.cfg.Logger().ErrorWithContext(ctx, "[Login] Failed to get user by email", zap.Error(err))
 		return "", oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
 	}
 
 	isMatch := pkg.CheckPasswordHash(req.Password, existingUser.Password)
 	if !isMatch {
-		s.cfg.Logger().Error("[Login] Invalid password for user", zap.String("email", req.Email))
+		s.cfg.Logger().ErrorWithContext(ctx, "[Login] Invalid password for user", zap.String("email", req.Email))
 		return "", oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("Invalid Email/Password")
 	}
 
 	token, err = pkg.GenerateToken(existingUser)
 	if err != nil {
-		s.cfg.Logger().Error("[Login] Failed to generate JWT Token for user", zap.String("email", req.Email))
+		s.cfg.Logger().ErrorWithContext(ctx, "[Login] Failed to generate JWT Token for user", zap.String("email", req.Email))
 		return "", oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
 	}
 
