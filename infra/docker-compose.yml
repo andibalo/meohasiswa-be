@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+#  postgres:
+#    container_name: postgres
+#    image: postgres:latest
+#    environment:
+#      POSTGRES_USER: postgres
+#      POSTGRES_PASSWORD: postgres
+#      PGDATA: /data/postgres
+#    volumes:
+#      - postgres-db:/data/postgres
+#    ports:
+#      - "5432:5432"
+
+  loki:
+    container_name: loki
+    image: grafana/loki:latest
+    volumes:
+      - ./loki-config.yaml:/etc/loki/loki-config.yaml
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/loki-config.yaml
+    networks:
+      - meohasiswa-be
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:latest
+    hostname: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        mkdir -p /etc/grafana/provisioning/datasources
+        cat <<EOF > /etc/grafana/provisioning/datasources/ds.yaml
+        apiVersion: 1
+        datasources:
+        - name: Loki
+          type: loki
+          access: proxy
+          orgId: 1
+          url: http://loki:3100
+          basicAuth: false
+          isDefault: true
+          version: 1
+          editable: false
+        EOF
+        /run.sh
+    networks:
+      - meohasiswa-be
+
+  promtail:
+    image:  grafana/promtail:3.0.0
+    container_name: promtail
+    volumes:
+      - ./promtail-config.local.yaml:/etc/promtail/docker-config.yaml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock                 # To allow Promtail to access Docker container logs, mount the Docker socket in the Promtail container
+    command: -config.file=/etc/promtail/docker-config.yaml
+    ports:
+      - "9080:9080"
+    depends_on:
+      - loki
+    networks:
+      - meohasiswa-be
+
+  core:
+    container_name: core-service
+    build:
+      context: ../.
+      dockerfile: Dockerfile
+    labels:
+      logging: "promtail"
+      logging_jobname: "containerlogs"
+    restart: always
+    deploy:
+      mode: replicated
+      replicas: 1
+    ports:
+      - "8081:8081"
+    networks:
+      - meohasiswa-be
+
+
+networks:
+  meohasiswa-be:

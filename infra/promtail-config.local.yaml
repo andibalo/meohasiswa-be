@@ -1,0 +1,40 @@
+# https://grafana.com/docs/loki/latest/clients/promtail/configuration/
+# https://docs.docker.com/engine/api/v1.41/#operation/ContainerList
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+#  log_level: debug  # Displays logs from containers in promtail
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: stdout-logs
+    docker_sd_configs: # In Docker, each container’s logs are stored in JSON format under /var/lib/docker/containers/<container-id>
+      - host: unix:///var/run/docker.sock  # Connects to Docker socket for container discovery
+        refresh_interval: 5s  # How often to refresh the container list
+        filters:
+          - name: label
+            values: ["logging=promtail"]  # Only scrape containers with this label
+    relabel_configs:                                    # The relabel_configs section allows you to modify metadata from Docker for labeling purposes, making it easier to search and filter logs in Loki.
+      - source_labels: ['__meta_docker_container_name'] # label in docker
+        regex: '/(.*)'
+        target_label: 'container'                       # label in loki
+      - source_labels: ['__meta_docker_container_log_stream']
+        target_label: 'logstream'
+      - source_labels: ['__meta_docker_container_label_logging_jobname']
+        target_label: 'job'
+    pipeline_stages: # Pipeline stages transform log data before sending it to Loki, with each stage serving a different function.
+      - cri: {} # Parses log format used by Kubernetes CRI-compatible containers (optional)
+      - multiline:
+          firstline: ^\d{4}-\d{2}-\d{2} \d{1,2}:\d{2}:\d{2},\d{3}
+          max_wait_time: 3s
+      # https://grafana.com/docs/loki/latest/clients/promtail/stages/json/
+      - json:
+          expressions:
+            #message: message
+            level: level
+            #output: 'message'
