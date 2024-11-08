@@ -87,6 +87,8 @@ type Flag struct {
 
 type Auth struct {
 	UserSecretCodeExpiryMins int
+	JWTSecret                string
+	JWTStaticToken           string
 }
 
 func InitConfig() *AppConfig {
@@ -159,6 +161,8 @@ func InitConfig() *AppConfig {
 		},
 		Auth: Auth{
 			UserSecretCodeExpiryMins: viper.GetInt("USER_SECRET_CODE_EXPIRY_MINS"),
+			JWTSecret:                viper.GetString("JWT_SECRET"),
+			JWTStaticToken:           viper.GetString("JWT_STATIC_TOKEN"),
 		},
 	}
 }

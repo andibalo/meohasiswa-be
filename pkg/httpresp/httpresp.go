@@ -78,7 +78,7 @@ func HttpRespError(c *gin.Context, err error) {
 	c.Set("status", http.StatusText(statusCode))
 	c.Set("error", fmt.Sprintf("%s %s [%d] %s", c.Request.Method, c.Request.RequestURI, statusCode, http.StatusText(statusCode)))
 
-	c.JSON(statusCode, jsonErrResp)
+	c.AbortWithStatusJSON(statusCode, jsonErrResp)
 }
 
 func HttpRespSuccess(c *gin.Context, data interface{}, pagination *Pagination) {

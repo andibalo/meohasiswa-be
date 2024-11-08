@@ -19,3 +19,7 @@ type SubThreadService interface {
 	FollowSubThread(ctx context.Context, req request.FollowSubThreadReq) error
 	UnFollowSubThread(ctx context.Context, req request.UnFollowSubThreadReq) error
 }
+
+type ThreadService interface {
+	CreateThread(ctx context.Context, req request.CreateThreadReq) error
+}

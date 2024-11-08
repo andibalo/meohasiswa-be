@@ -2,6 +2,7 @@ package v1
 
 import (
 	"github.com/andibalo/meowhasiswa-be/internal/config"
+	"github.com/andibalo/meowhasiswa-be/internal/middleware"
 	"github.com/andibalo/meowhasiswa-be/internal/request"
 	"github.com/andibalo/meowhasiswa-be/internal/response"
 	"github.com/andibalo/meowhasiswa-be/internal/service"
@@ -14,38 +15,46 @@ import (
 )
 
 type ThreadController struct {
-	cfg     config.Config
-	authSvc service.AuthService
+	cfg       config.Config
+	threadSvc service.ThreadService
 }
 
-func NewThreadController(cfg config.Config, authSvc service.AuthService) *ThreadController {
+func NewThreadController(cfg config.Config, threadSvc service.ThreadService) *ThreadController {
 
 	return &ThreadController{
-		cfg:     cfg,
-		authSvc: authSvc,
+		cfg:       cfg,
+		threadSvc: threadSvc,
 	}
 }
 
 func (h *ThreadController) AddRoutes(r *gin.Engine) {
 	ar := r.Group("/api/v1/thread")
 
-	ar.POST("", h.CreateThread)
+	ar.POST("", middleware.JwtMiddleware(h.cfg), h.CreateThread)
 }
 
 func (h *ThreadController) CreateThread(c *gin.Context) {
 	//_, endFunc := trace.Start(c.Copy().Request.Context(), "AuthController.Register", "controller")
 	//defer endFunc()
 
-	var data request.RegisterUserReq
+	claims := middleware.ParseToken(c)
+	if len(claims.Token) == 0 {
+		httpresp.HttpRespError(c, oops.Code(response.Unauthorized.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusUnauthorized).Errorf(apperr.ErrUnauthorized))
+		return
+	}
 
+	var data request.CreateThreadReq
 	if err := c.ShouldBindJSON(&data); err != nil {
 		httpresp.HttpRespError(c, oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf(apperr.ErrBadRequest))
 		return
 	}
 
-	err := h.authSvc.Register(c.Request.Context(), data)
+	data.UserID = claims.ID
+	data.UserEmail = claims.Email
+
+	err := h.threadSvc.CreateThread(c.Request.Context(), data)
 	if err != nil {
-		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[Register] Failed to create user", zap.Error(err))
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[CreateThread] Failed to create thread", zap.Error(err))
 		httpresp.HttpRespError(c, err)
 		return
 	}

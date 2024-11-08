@@ -27,3 +27,7 @@ type SubThreadRepository interface {
 	DeleteSubThreadFollowerTx(subThreadFollower *model.SubThreadFollower, tx bun.Tx) error
 	UpdateSubThreadFollowerIsFollowingTx(id string, isFollowing bool, tx bun.Tx) error
 }
+
+type ThreadRepository interface {
+	Save(thread *model.Thread) error
+}
