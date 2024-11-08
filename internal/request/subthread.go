@@ -12,3 +12,8 @@ type FollowSubThreadReq struct {
 	SubThreadID string `json:"subthread_id" binding:"required"`
 	UserID      string `json:"user_id" binding:"required"`
 }
+
+type UnFollowSubThreadReq struct {
+	SubThreadID string `json:"subthread_id" binding:"required"`
+	UserID      string `json:"user_id" binding:"required"`
+}

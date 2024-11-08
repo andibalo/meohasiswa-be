@@ -24,3 +24,7 @@ func GenRandomString(n int) string {
 	}
 	return string(b)
 }
+
+func ToPointer[K any](val K) *K {
+	return &val
+}

@@ -89,6 +89,7 @@ CREATE TABLE subthread_follower (
     id UUID PRIMARY KEY NOT NULL,
     user_id UUID NOT NULL REFERENCES "user"(id),
     subthread_id UUID NOT NULL REFERENCES subthread(id),
+    is_following BOOLEAN NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     created_by VARCHAR(100) NOT NULL,
     updated_at TIMESTAMPTZ,

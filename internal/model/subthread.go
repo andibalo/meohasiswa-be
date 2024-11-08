@@ -29,6 +29,7 @@ type SubThreadFollower struct {
 	ID          string    `bun:",pk"`
 	UserID      string    `bun:"user_id"`
 	SubThreadID string    `bun:"subthread_id"`
+	IsFollowing bool      `bun:"is_following"`
 	CreatedBy   string    `bun:"created_by"`
 	CreatedAt   time.Time `bun:",nullzero,default:now()"`
 	UpdatedBy   *string

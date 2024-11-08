@@ -20,6 +20,10 @@ type SubThreadRepository interface {
 	SaveTx(subThread *model.SubThread, tx bun.Tx) error
 	GetByID(subThreadID string) (*model.SubThread, error)
 	GetByName(name string) (*model.SubThread, error)
+	GetSubThreadFollowerByUserIDAndSubThreadID(userID string, subThreadID string) (*model.SubThreadFollower, error)
 	IncrementFollowersCountTx(subThreadID string, tx bun.Tx) error
+	DecrementFollowersCountTx(subThreadID string, tx bun.Tx) error
 	SaveSubThreadFollowerTx(subthreadFollower *model.SubThreadFollower, tx bun.Tx) error
+	DeleteSubThreadFollowerTx(subThreadFollower *model.SubThreadFollower, tx bun.Tx) error
+	UpdateSubThreadFollowerIsFollowingTx(id string, isFollowing bool, tx bun.Tx) error
 }
