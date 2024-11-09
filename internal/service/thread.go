@@ -58,3 +58,27 @@ func (s *threadService) CreateThread(ctx context.Context, req request.CreateThre
 
 	return nil
 }
+
+func (s *threadService) GetThreadList(ctx context.Context, req request.GetThreadListReq) (response.GetThreadListResponse, error) {
+	//ctx, endFunc := trace.Start(ctx, "ThreadService.GetThreadList", "service")
+	//defer endFunc()
+
+	var resp response.GetThreadListResponse
+
+	threads, pagination, err := s.threadRepo.GetList(req)
+
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[GetThreadList] Failed to get thread list", zap.Error(err))
+
+		return resp, oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to get thread list")
+	}
+
+	resp.Meta = response.PaginationMeta{
+		CurrentCursor: pagination.CurrentCursor,
+		NextCursor:    pagination.NextCursor,
+	}
+
+	resp.Data = threads
+
+	return resp, nil
+}

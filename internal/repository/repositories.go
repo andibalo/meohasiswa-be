@@ -2,6 +2,8 @@ package repository
 
 import (
 	"github.com/andibalo/meowhasiswa-be/internal/model"
+	"github.com/andibalo/meowhasiswa-be/internal/request"
+	"github.com/andibalo/meowhasiswa-be/pkg"
 	"github.com/uptrace/bun"
 )
 
@@ -30,4 +32,5 @@ type SubThreadRepository interface {
 
 type ThreadRepository interface {
 	Save(thread *model.Thread) error
+	GetList(req request.GetThreadListReq) ([]model.Thread, pkg.Pagination, error)
 }

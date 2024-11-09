@@ -100,7 +100,7 @@ CREATE TABLE subthread_follower (
 
 CREATE TABLE thread (
     id UUID PRIMARY KEY NOT NULL,
-    user_id UUID NOT NULL REFERENCES user(id),
+    user_id UUID NOT NULL REFERENCES "user"(id),
     subthread_id UUID NOT NULL REFERENCES subthread(id),
     title VARCHAR(100) NOT NULL,
     content VARCHAR(255) NOT NULL,
@@ -109,6 +109,23 @@ CREATE TABLE thread (
     like_count INTEGER NOT NULL DEFAULT 0,
     dislike_count INTEGER NOT NULL DEFAULT 0,
     comment_count INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_by VARCHAR NOT NULL,
+    updated_at TIMESTAMPTZ,
+    updated_by VARCHAR,
+    deleted_at TIMESTAMPTZ,
+    deleted_by VARCHAR
+);
+
+CREATE INDEX IF NOT EXISTS thread_cursor_index ON thread(created_at,id);
+
+CREATE TABLE thread_comment (
+    id UUID PRIMARY KEY NOT NULL,
+    user_id UUID NOT NULL REFERENCES "user"(id),
+    thread_id UUID NOT NULL REFERENCES thread(id),
+    content VARCHAR(255) NOT NULL,
+    like_count INTEGER NOT NULL DEFAULT 0,
+    dislike_count INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     created_by VARCHAR NOT NULL,
     updated_at TIMESTAMPTZ,

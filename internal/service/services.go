@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"github.com/andibalo/meowhasiswa-be/internal/request"
+	"github.com/andibalo/meowhasiswa-be/internal/response"
 )
 
 type UserService interface {
@@ -22,4 +23,5 @@ type SubThreadService interface {
 
 type ThreadService interface {
 	CreateThread(ctx context.Context, req request.CreateThreadReq) error
+	GetThreadList(ctx context.Context, req request.GetThreadListReq) (response.GetThreadListResponse, error)
 }

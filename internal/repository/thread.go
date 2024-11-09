@@ -2,8 +2,12 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"github.com/andibalo/meowhasiswa-be/internal/model"
+	"github.com/andibalo/meowhasiswa-be/internal/request"
+	"github.com/andibalo/meowhasiswa-be/pkg"
 	"github.com/uptrace/bun"
+	"time"
 )
 
 type threadRepository struct {
@@ -24,4 +28,39 @@ func (r *threadRepository) Save(thread *model.Thread) error {
 	}
 
 	return nil
+}
+
+func (r *threadRepository) GetList(req request.GetThreadListReq) ([]model.Thread, pkg.Pagination, error) {
+	var (
+		threads    []model.Thread
+		nextCursor string
+	)
+
+	pagination := pkg.Pagination{}
+
+	query := r.db.NewSelect().
+		Model(&threads).
+		ExcludeColumn("deleted_by", "deleted_at").
+		Limit(req.Limit + 1)
+
+	if req.Cursor != "" {
+		createdAt, id := pkg.GetCursorData(req.Cursor)
+		query.Where("(created_at, id) > (?, ?)", createdAt, id)
+	}
+
+	err := query.Scan(context.Background())
+	if err != nil {
+		return threads, pagination, err
+	}
+
+	if len(threads) > req.Limit {
+		lastThread := threads[len(threads)-1]
+		nextCursor = fmt.Sprintf("%s_%s", lastThread.CreatedAt.Format(time.RFC3339), lastThread.ID)
+		threads = threads[:req.Limit] // Trim to the requested limit
+	}
+
+	pagination.CurrentCursor = req.Cursor
+	pagination.NextCursor = nextCursor
+
+	return threads, pagination, nil
 }

@@ -3,6 +3,7 @@ package pkg
 import (
 	"golang.org/x/crypto/bcrypt"
 	"math/rand"
+	"strings"
 )
 
 func HashPassword(password string) (string, error) {
@@ -27,4 +28,11 @@ func GenRandomString(n int) string {
 
 func ToPointer[K any](val K) *K {
 	return &val
+}
+
+func GetCursorData(cursor string) (string, string) {
+
+	splitCursor := strings.Split(cursor, "_")
+
+	return splitCursor[0], splitCursor[1]
 }
