@@ -31,6 +31,9 @@ func (r *threadRepository) Save(thread *model.Thread) error {
 }
 
 func (r *threadRepository) GetList(req request.GetThreadListReq) ([]model.Thread, pkg.Pagination, error) {
+
+	//TODO: add trending filter
+
 	var (
 		threads    []model.Thread
 		nextCursor string
@@ -39,13 +42,20 @@ func (r *threadRepository) GetList(req request.GetThreadListReq) ([]model.Thread
 	pagination := pkg.Pagination{}
 
 	query := r.db.NewSelect().
+		Column("th.*").
 		Model(&threads).
-		ExcludeColumn("deleted_by", "deleted_at").
+		Join("JOIN subthread_follower AS stf ON stf.subthread_id = th.subthread_id").
+		Where("stf.is_following = TRUE").
 		Limit(req.Limit + 1)
 
 	if req.Cursor != "" {
 		createdAt, id := pkg.GetCursorData(req.Cursor)
-		query.Where("(created_at, id) > (?, ?)", createdAt, id)
+		query.Where("(th.created_at, th.id) <= (?, ?)", createdAt, id)
+
+		query.Order("th.created_at desc", "th.id desc")
+
+	} else {
+		query.Order("th.created_at desc")
 	}
 
 	err := query.Scan(context.Background())
@@ -55,7 +65,7 @@ func (r *threadRepository) GetList(req request.GetThreadListReq) ([]model.Thread
 
 	if len(threads) > req.Limit {
 		lastThread := threads[len(threads)-1]
-		nextCursor = fmt.Sprintf("%s_%s", lastThread.CreatedAt.Format(time.RFC3339), lastThread.ID)
+		nextCursor = fmt.Sprintf("%s_%s", lastThread.CreatedAt.Format(time.RFC3339Nano), lastThread.ID)
 		threads = threads[:req.Limit] // Trim to the requested limit
 	}
 

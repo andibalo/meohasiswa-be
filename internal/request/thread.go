@@ -11,8 +11,10 @@ type CreateThreadReq struct {
 }
 
 type GetThreadListReq struct {
-	IsTrending bool `json:"is_trending"`
+	IsTrending bool   `json:"is_trending"`
+	Limit      int    `json:"limit"`
+	Cursor     string `json:"cursor"`
 
-	Limit  int    `json:"limit"`
-	Cursor string `json:"cursor"`
+	UserID    string `json:"-"`
+	UserEmail string `json:"-"`
 }

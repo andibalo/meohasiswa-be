@@ -62,6 +62,8 @@ func (h *ThreadController) GetThreadList(c *gin.Context) {
 	data.Limit = limit
 	data.IsTrending = isTrending
 	data.Cursor = c.Query("cursor")
+	data.UserID = claims.ID
+	data.UserEmail = claims.Email
 
 	resp, err := h.threadSvc.GetThreadList(c.Request.Context(), data)
 	if err != nil {
