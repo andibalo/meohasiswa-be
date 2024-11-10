@@ -120,6 +120,17 @@ CREATE TABLE thread (
 
 CREATE INDEX IF NOT EXISTS thread_cursor_index ON thread(created_at,id);
 
+CREATE TABLE thread_activity (
+    id UUID PRIMARY KEY NOT NULL,
+    actor_id UUID NOT NULL REFERENCES "user"(id),
+    actor_email VARCHAR(100) NOT NULL,
+    actor_username VARCHAR(100) NOT NULL,
+    thread_id UUID NOT NULL REFERENCES thread(id),
+    action VARCHAR(100) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_by VARCHAR NOT NULL
+);
+
 CREATE TABLE thread_comment (
     id UUID PRIMARY KEY NOT NULL,
     user_id UUID NOT NULL REFERENCES "user"(id),

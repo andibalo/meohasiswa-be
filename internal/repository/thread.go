@@ -30,6 +30,74 @@ func (r *threadRepository) Save(thread *model.Thread) error {
 	return nil
 }
 
+func (r *threadRepository) IncrementLikesCountTx(threadID string, tx bun.Tx) error {
+
+	_, err := tx.NewRaw("UPDATE thread SET like_count = like_count + 1 WHERE id = ?", threadID).
+		Exec(context.Background())
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *threadRepository) DecrementLikesCountTx(threadID string, tx bun.Tx) error {
+
+	_, err := tx.NewRaw("UPDATE thread SET like_count = like_count - 1 WHERE id = ?", threadID).
+		Exec(context.Background())
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *threadRepository) IncrementDislikesCountTx(threadID string, tx bun.Tx) error {
+
+	_, err := tx.NewRaw("UPDATE thread SET dislike_count = dislike_count + 1 WHERE id = ?", threadID).
+		Exec(context.Background())
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *threadRepository) DecrementDislikesCountTx(threadID string, tx bun.Tx) error {
+
+	_, err := tx.NewRaw("UPDATE thread SET dislike_count = dislike_count - 1 WHERE id = ?", threadID).
+		Exec(context.Background())
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *threadRepository) SaveThreadActivity(threadActivity *model.ThreadActivity) error {
+
+	_, err := r.db.NewInsert().Model(threadActivity).Exec(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *threadRepository) SaveThreadActivityTx(threadActivity *model.ThreadActivity, tx bun.Tx) error {
+
+	_, err := tx.NewInsert().Model(threadActivity).Exec(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *threadRepository) GetList(req request.GetThreadListReq) ([]model.Thread, pkg.Pagination, error) {
 
 	//TODO: add trending filter
@@ -80,4 +148,21 @@ func (r *threadRepository) GetList(req request.GetThreadListReq) ([]model.Thread
 	pagination.NextCursor = nextCursor
 
 	return threads, pagination, nil
+}
+
+func (r *threadRepository) GetLastThreadActivityByUserID(threadId string, userId string) (*model.ThreadActivity, error) {
+	threadActivity := &model.ThreadActivity{}
+
+	err := r.db.NewSelect().
+		Model(threadActivity).
+		Where("thread_id = ? AND actor_id = ?", threadId, userId).
+		Order("created_at desc").
+		Limit(1).
+		Scan(context.Background())
+
+	if err != nil {
+		return nil, err
+	}
+
+	return threadActivity, nil
 }

@@ -27,3 +27,17 @@ type Thread struct {
 	DeletedBy      *string      `json:"-"`
 	DeletedAt      time.Time    `bun:",nullzero,soft_delete" json:"-"`
 }
+
+type ThreadActivity struct {
+	bun.BaseModel `bun:"table:thread_activity,alias:tha"`
+
+	ID            string    `bun:",pk" json:"id"`
+	ThreadID      string    `bun:"thread_id" json:"thread_id"`
+	Thread        Thread    `bun:"rel:belongs-to,join:thread_id=id" json:"thread"`
+	ActorID       string    `bun:"actor_id" json:"actor_id"`
+	ActorEmail    string    `bun:"actor_email" json:"actor_email"`
+	ActorUsername string    `bun:"actor_username" json:"actor_username"`
+	Action        string    `bun:"action" json:"action"`
+	CreatedBy     string    `bun:"created_by" json:"created_by"`
+	CreatedAt     time.Time `bun:",nullzero,default:now()" json:"created_at"`
+}
