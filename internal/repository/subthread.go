@@ -32,6 +32,7 @@ func (r *subThreadRepository) GetList(req request.GetSubThreadListReq) ([]model.
 	query := r.db.NewSelect().
 		Column("st.*").
 		Model(&subThreads).
+		Where("st.is_university_subthread = FALSE").
 		Limit(req.Limit + 1)
 
 	if req.IsFollowing {

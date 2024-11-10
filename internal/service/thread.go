@@ -7,6 +7,7 @@ import (
 	"github.com/andibalo/meowhasiswa-be/internal/repository"
 	"github.com/andibalo/meowhasiswa-be/internal/request"
 	"github.com/andibalo/meowhasiswa-be/internal/response"
+	"github.com/andibalo/meowhasiswa-be/pkg"
 	"github.com/andibalo/meowhasiswa-be/pkg/httpresp"
 	"github.com/google/uuid"
 	"github.com/samber/oops"
@@ -78,7 +79,43 @@ func (s *threadService) GetThreadList(ctx context.Context, req request.GetThread
 		NextCursor:    pagination.NextCursor,
 	}
 
-	resp.Data = threads
+	resp.Data = s.mapThreadListData(threads)
 
 	return resp, nil
+}
+
+func (s *threadService) mapThreadListData(threads []model.Thread) []response.ThreadListData {
+
+	threadData := []response.ThreadListData{}
+
+	for _, t := range threads {
+
+		tld := response.ThreadListData{
+			ID:             t.ID,
+			UserID:         t.UserID,
+			UserName:       t.User.Username,
+			SubThreadID:    t.SubThreadID,
+			SubThreadName:  t.SubThread.Name,
+			Title:          t.Title,
+			Content:        t.Content,
+			ContentSummary: t.ContentSummary,
+			IsActive:       t.IsActive,
+			LikeCount:      t.LikeCount,
+			DislikeCount:   t.DislikeCount,
+			CommentCount:   t.CommentCount,
+			CreatedBy:      t.CreatedBy,
+			CreatedAt:      t.CreatedAt,
+			UpdatedBy:      t.UpdatedBy,
+			UpdatedAt:      t.UpdatedAt,
+		}
+
+		if t.User.University != nil {
+			tld.UniversityAbbreviatedName = pkg.ToPointer(t.User.University.AbbreviatedName)
+			tld.UniversityImageURL = pkg.ToPointer(t.User.University.ImageURL)
+		}
+
+		threadData = append(threadData, tld)
+	}
+
+	return threadData
 }

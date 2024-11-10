@@ -44,6 +44,13 @@ func (r *threadRepository) GetList(req request.GetThreadListReq) ([]model.Thread
 	query := r.db.NewSelect().
 		Column("th.*").
 		Model(&threads).
+		Relation("User", func(q *bun.SelectQuery) *bun.SelectQuery {
+			return q.Column("id", "username")
+		}).
+		Relation("User.University").
+		Relation("SubThread", func(q *bun.SelectQuery) *bun.SelectQuery {
+			return q.Column("id", "name", "label_color")
+		}).
 		Join("JOIN subthread_follower AS stf ON stf.subthread_id = th.subthread_id").
 		Where("stf.is_following = TRUE").
 		Limit(req.Limit + 1)

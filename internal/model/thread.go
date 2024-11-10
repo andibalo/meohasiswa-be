@@ -10,7 +10,9 @@ type Thread struct {
 
 	ID             string       `bun:",pk" json:"id"`
 	UserID         string       `bun:"user_id" json:"user_id"`
+	User           User         `bun:"rel:belongs-to,join:user_id=id" json:"user"`
 	SubThreadID    string       `bun:"subthread_id" json:"subthread_id"`
+	SubThread      SubThread    `bun:"rel:belongs-to,join:subthread_id=id" json:"subthread"`
 	Title          string       `bun:"title" json:"title"`
 	Content        string       `bun:"content" json:"content"`
 	ContentSummary string       `bun:"content_summary" json:"content_summary"`
