@@ -33,6 +33,30 @@ func NewSubThreadService(cfg config.Config, subThreadRepo repository.SubThreadRe
 	}
 }
 
+func (s *subThreadService) GetSubThreadList(ctx context.Context, req request.GetSubThreadListReq) (response.GetSubThreadListResponse, error) {
+	//ctx, endFunc := trace.Start(ctx, "SubThreadService.GetSubThreadList", "service")
+	//defer endFunc()
+
+	var resp response.GetSubThreadListResponse
+
+	subThreads, pagination, err := s.subThreadRepo.GetList(req)
+
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[GetSubThreadList] Failed to get subthread list", zap.Error(err))
+
+		return resp, oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to get subthread list")
+	}
+
+	resp.Meta = response.PaginationMeta{
+		CurrentCursor: pagination.CurrentCursor,
+		NextCursor:    pagination.NextCursor,
+	}
+
+	resp.Data = subThreads
+
+	return resp, nil
+}
+
 func (s *subThreadService) CreateSubThread(ctx context.Context, req request.CreateSubThreadReq) error {
 	//ctx, endFunc := trace.Start(ctx, "SubThreadService.CreateSubThread", "service")
 	//defer endFunc()
@@ -53,9 +77,10 @@ func (s *subThreadService) CreateSubThread(ctx context.Context, req request.Crea
 		Name:                  req.Name,
 		ImageUrl:              req.ImageUrl,
 		Description:           req.Description,
+		LabelColor:            req.LabelColor,
 		UniversityID:          req.UniversityID,
 		IsUniversitySubThread: req.IsUniversitySubThread,
-		CreatedBy:             "SYSTEM", // TODO: update to using token
+		CreatedBy:             req.UserEmail,
 	}
 
 	err = s.subThreadRepo.Save(subThread)

@@ -20,6 +20,7 @@ type UserRepository interface {
 type SubThreadRepository interface {
 	Save(subThread *model.SubThread) error
 	SaveTx(subThread *model.SubThread, tx bun.Tx) error
+	GetList(req request.GetSubThreadListReq) ([]model.SubThread, pkg.Pagination, error)
 	GetByID(subThreadID string) (*model.SubThread, error)
 	GetByName(name string) (*model.SubThread, error)
 	GetSubThreadFollowerByUserIDAndSubThreadID(userID string, subThreadID string) (*model.SubThreadFollower, error)

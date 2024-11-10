@@ -73,6 +73,7 @@ CREATE TABLE subthread (
     description VARCHAR(100) NOT NULL,
     followers_count INTEGER NOT NULL DEFAULT 0,
     image_url VARCHAR(255) NOT NULL,
+    label_color VARCHAR(100) NOT NULL,
     university_id UUID REFERENCES university(id),
     is_university_subthread BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

@@ -2,9 +2,11 @@ package v1
 
 import (
 	"github.com/andibalo/meowhasiswa-be/internal/config"
+	"github.com/andibalo/meowhasiswa-be/internal/middleware"
 	"github.com/andibalo/meowhasiswa-be/internal/request"
 	"github.com/andibalo/meowhasiswa-be/internal/response"
 	"github.com/andibalo/meowhasiswa-be/internal/service"
+	"github.com/andibalo/meowhasiswa-be/pkg"
 	"github.com/andibalo/meowhasiswa-be/pkg/apperr"
 	"github.com/andibalo/meowhasiswa-be/pkg/httpresp"
 	"github.com/gin-gonic/gin"
@@ -29,14 +31,63 @@ func NewSubThreadController(cfg config.Config, subThreadSvc service.SubThreadSer
 func (h *SubThreadController) AddRoutes(r *gin.Engine) {
 	str := r.Group("/api/v1/subthread")
 
-	str.POST("", h.CreateSubThread)
-	str.POST("/follow", h.FollowSubThread)
-	str.PATCH("/unfollow", h.UnfollowSubThread)
+	str.GET("", middleware.JwtMiddleware(h.cfg), h.GetListSubThread)
+	str.POST("", middleware.JwtMiddleware(h.cfg), h.CreateSubThread)
+	str.POST("/follow", middleware.JwtMiddleware(h.cfg), h.FollowSubThread)
+	str.PATCH("/unfollow", middleware.JwtMiddleware(h.cfg), h.UnfollowSubThread)
+}
+
+func (h *SubThreadController) GetListSubThread(c *gin.Context) {
+	//_, endFunc := trace.Start(c.Copy().Request.Context(), "SubThreadController.GetListSubThread", "controller")
+	//defer endFunc()
+
+	claims := middleware.ParseToken(c)
+	if len(claims.Token) == 0 {
+		httpresp.HttpRespError(c, oops.Code(response.Unauthorized.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusUnauthorized).Errorf(apperr.ErrUnauthorized))
+		return
+	}
+
+	var data request.GetSubThreadListReq
+
+	limit, err := pkg.GetIntQueryParams(c, 10, "limit")
+	if err != nil {
+		httpresp.HttpRespError(c, err)
+		return
+	}
+
+	isFollowing, err := pkg.GetBoolQueryParams(c, "is_following")
+	if err != nil {
+		httpresp.HttpRespError(c, err)
+		return
+	}
+
+	data.Limit = limit
+	data.IsFollowing = isFollowing
+	data.Cursor = c.Query("cursor")
+	data.UserID = claims.ID
+	data.UserEmail = claims.Email
+
+	resp, err := h.subThreadSvc.GetSubThreadList(c.Request.Context(), data)
+
+	if err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[GetListSubThread] Failed to get subthread list", zap.Error(err))
+		httpresp.HttpRespError(c, err)
+		return
+	}
+
+	httpresp.HttpRespSuccess(c, resp, nil)
+	return
 }
 
 func (h *SubThreadController) CreateSubThread(c *gin.Context) {
 	//_, endFunc := trace.Start(c.Copy().Request.Context(), "SubThreadController.CreateSubThread", "controller")
 	//defer endFunc()
+
+	claims := middleware.ParseToken(c)
+	if len(claims.Token) == 0 {
+		httpresp.HttpRespError(c, oops.Code(response.Unauthorized.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusUnauthorized).Errorf(apperr.ErrUnauthorized))
+		return
+	}
 
 	var data request.CreateSubThreadReq
 
@@ -44,6 +95,8 @@ func (h *SubThreadController) CreateSubThread(c *gin.Context) {
 		httpresp.HttpRespError(c, oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf(apperr.ErrBadRequest))
 		return
 	}
+
+	data.UserEmail = claims.Email
 
 	err := h.subThreadSvc.CreateSubThread(c.Request.Context(), data)
 
@@ -61,12 +114,20 @@ func (h *SubThreadController) FollowSubThread(c *gin.Context) {
 	//_, endFunc := trace.Start(c.Copy().Request.Context(), "SubThreadController.FollowSubThread", "controller")
 	//defer endFunc()
 
+	claims := middleware.ParseToken(c)
+	if len(claims.Token) == 0 {
+		httpresp.HttpRespError(c, oops.Code(response.Unauthorized.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusUnauthorized).Errorf(apperr.ErrUnauthorized))
+		return
+	}
+
 	var data request.FollowSubThreadReq
 
 	if err := c.ShouldBindJSON(&data); err != nil {
 		httpresp.HttpRespError(c, oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf(apperr.ErrBadRequest))
 		return
 	}
+
+	data.UserID = claims.ID
 
 	err := h.subThreadSvc.FollowSubThread(c.Request.Context(), data)
 	if err != nil {
@@ -83,12 +144,20 @@ func (h *SubThreadController) UnfollowSubThread(c *gin.Context) {
 	//_, endFunc := trace.Start(c.Copy().Request.Context(), "SubThreadController.UnfollowSubThread", "controller")
 	//defer endFunc()
 
+	claims := middleware.ParseToken(c)
+	if len(claims.Token) == 0 {
+		httpresp.HttpRespError(c, oops.Code(response.Unauthorized.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusUnauthorized).Errorf(apperr.ErrUnauthorized))
+		return
+	}
+
 	var data request.UnFollowSubThreadReq
 
 	if err := c.ShouldBindJSON(&data); err != nil {
 		httpresp.HttpRespError(c, oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf(apperr.ErrBadRequest))
 		return
 	}
+
+	data.UserID = claims.ID
 
 	err := h.subThreadSvc.UnFollowSubThread(c.Request.Context(), data)
 	if err != nil {

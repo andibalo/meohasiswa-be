@@ -2,8 +2,12 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"github.com/andibalo/meowhasiswa-be/internal/model"
+	"github.com/andibalo/meowhasiswa-be/internal/request"
+	"github.com/andibalo/meowhasiswa-be/pkg"
 	"github.com/uptrace/bun"
+	"time"
 )
 
 type subThreadRepository struct {
@@ -14,6 +18,53 @@ func NewSubThreadRepository(db *bun.DB) SubThreadRepository {
 	return &subThreadRepository{
 		db: db,
 	}
+}
+
+func (r *subThreadRepository) GetList(req request.GetSubThreadListReq) ([]model.SubThread, pkg.Pagination, error) {
+
+	var (
+		subThreads []model.SubThread
+		nextCursor string
+	)
+
+	pagination := pkg.Pagination{}
+
+	query := r.db.NewSelect().
+		Column("st.*").
+		Model(&subThreads).
+		Limit(req.Limit + 1)
+
+	if req.IsFollowing {
+		query.Join("JOIN subthread_follower AS stf ON stf.subthread_id = st.id").
+			Where("stf.user_id = ?", req.UserID).
+			Where("stf.is_following = TRUE")
+	}
+
+	if req.Cursor != "" {
+		createdAt, id := pkg.GetCursorData(req.Cursor)
+		query.Where("(st.created_at, st.id) <= (?, ?)", createdAt, id)
+
+		query.Order("st.created_at desc", "st.id desc")
+
+	} else {
+		query.Order("st.created_at desc")
+	}
+
+	err := query.Scan(context.Background())
+	if err != nil {
+		return subThreads, pagination, err
+	}
+
+	if len(subThreads) > req.Limit {
+		lastSubThread := subThreads[len(subThreads)-1]
+		nextCursor = fmt.Sprintf("%s_%s", lastSubThread.CreatedAt.Format(time.RFC3339Nano), lastSubThread.ID)
+		subThreads = subThreads[:req.Limit] // Trim to the requested limit
+	}
+
+	pagination.CurrentCursor = req.Cursor
+	pagination.NextCursor = nextCursor
+
+	return subThreads, pagination, nil
 }
 
 func (r *subThreadRepository) IncrementFollowersCountTx(subThreadID string, tx bun.Tx) error {
