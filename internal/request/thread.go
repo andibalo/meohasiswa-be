@@ -19,6 +19,10 @@ type GetThreadListReq struct {
 	UserEmail string `json:"-"`
 }
 
+type GetThreadDetailReq struct {
+	ThreadID string `json:"thread_id"`
+}
+
 type LikeThreadReq struct {
 	ThreadID string `json:"thread_id"`
 
@@ -30,6 +34,15 @@ type LikeThreadReq struct {
 type DislikeThreadReq struct {
 	ThreadID string `json:"thread_id"`
 
+	UserID    string `json:"-"`
+	Username  string `json:"-"`
+	UserEmail string `json:"-"`
+}
+
+type CommentThreadReq struct {
+	Content string `json:"content" binding:"required"`
+
+	ThreadID  string `json:"-"`
 	UserID    string `json:"-"`
 	Username  string `json:"-"`
 	UserEmail string `json:"-"`

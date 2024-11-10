@@ -30,6 +30,18 @@ func (r *threadRepository) Save(thread *model.Thread) error {
 	return nil
 }
 
+func (r *threadRepository) IncrementCommentsCountTx(threadID string, tx bun.Tx) error {
+
+	_, err := tx.NewRaw("UPDATE thread SET comment_count = comment_count + 1 WHERE id = ?", threadID).
+		Exec(context.Background())
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *threadRepository) IncrementLikesCountTx(threadID string, tx bun.Tx) error {
 
 	_, err := tx.NewRaw("UPDATE thread SET like_count = like_count + 1 WHERE id = ?", threadID).
@@ -96,6 +108,47 @@ func (r *threadRepository) SaveThreadActivityTx(threadActivity *model.ThreadActi
 	}
 
 	return nil
+}
+
+func (r *threadRepository) SaveThreadCommentTx(threadComment *model.ThreadComment, tx bun.Tx) error {
+
+	_, err := tx.NewInsert().Model(threadComment).Exec(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *threadRepository) GetByID(id string) (model.Thread, error) {
+
+	var (
+		thread model.Thread
+	)
+
+	err := r.db.NewSelect().
+		Column("th.*").
+		Model(&thread).
+		Relation("User", func(q *bun.SelectQuery) *bun.SelectQuery {
+			return q.Column("id", "username")
+		}).
+		Relation("User.University").
+		Relation("SubThread", func(q *bun.SelectQuery) *bun.SelectQuery {
+			return q.Column("id", "name", "label_color")
+		}).
+		Relation("Comments").
+		Relation("Comments.User", func(q *bun.SelectQuery) *bun.SelectQuery {
+			return q.Column("id", "username")
+		}).
+		Relation("Comments.User.University").
+		Where("th.id = ?", id).
+		Scan(context.Background())
+
+	if err != nil {
+		return thread, err
+	}
+
+	return thread, nil
 }
 
 func (r *threadRepository) GetList(req request.GetThreadListReq) ([]model.Thread, pkg.Pagination, error) {

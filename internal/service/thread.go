@@ -100,6 +100,7 @@ func (s *threadService) mapThreadListData(threads []model.Thread) []response.Thr
 			UserName:       t.User.Username,
 			SubThreadID:    t.SubThreadID,
 			SubThreadName:  t.SubThread.Name,
+			SubThreadColor: t.SubThread.LabelColor,
 			Title:          t.Title,
 			Content:        t.Content,
 			ContentSummary: t.ContentSummary,
@@ -122,6 +123,89 @@ func (s *threadService) mapThreadListData(threads []model.Thread) []response.Thr
 	}
 
 	return threadData
+}
+
+func (s *threadService) GetThreadDetail(ctx context.Context, req request.GetThreadDetailReq) (response.GetThreadDetailResponse, error) {
+	//ctx, endFunc := trace.Start(ctx, "ThreadService.GetThreadDetail", "service")
+	//defer endFunc()
+
+	var resp response.GetThreadDetailResponse
+
+	thread, err := s.threadRepo.GetByID(req.ThreadID)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			s.cfg.Logger().ErrorWithContext(ctx, "[GetThreadDetail] Thread does not exist", zap.Error(err))
+
+			return resp, oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("Thread does not exist")
+		}
+
+		s.cfg.Logger().ErrorWithContext(ctx, "[GetThreadDetail] Failed to get thread detail", zap.Error(err))
+
+		return resp, oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to get thread detail")
+	}
+
+	resp.Data = s.mapThreadDetailData(thread)
+
+	return resp, nil
+}
+
+func (s *threadService) mapThreadDetailData(thread model.Thread) response.ThreadDetailData {
+
+	threadComments := []response.ThreadComment{}
+
+	td := response.ThreadDetailData{
+		ID:             thread.ID,
+		UserID:         thread.UserID,
+		UserName:       thread.User.Username,
+		SubThreadID:    thread.SubThreadID,
+		SubThreadName:  thread.SubThread.Name,
+		SubThreadColor: thread.SubThread.LabelColor,
+		Title:          thread.Title,
+		Content:        thread.Content,
+		ContentSummary: thread.ContentSummary,
+		IsActive:       thread.IsActive,
+		LikeCount:      thread.LikeCount,
+		DislikeCount:   thread.DislikeCount,
+		CommentCount:   thread.CommentCount,
+		CreatedBy:      thread.CreatedBy,
+		CreatedAt:      thread.CreatedAt,
+		UpdatedBy:      thread.UpdatedBy,
+		UpdatedAt:      thread.UpdatedAt,
+	}
+
+	if thread.User.University != nil {
+		td.UniversityAbbreviatedName = pkg.ToPointer(thread.User.University.AbbreviatedName)
+		td.UniversityImageURL = pkg.ToPointer(thread.User.University.ImageURL)
+	}
+
+	if thread.Comments != nil && len(thread.Comments) > 0 {
+		for _, c := range thread.Comments {
+			tc := response.ThreadComment{
+				ID:           c.ID,
+				UserID:       c.UserID,
+				UserName:     c.User.Username,
+				Content:      c.Content,
+				LikeCount:    c.LikeCount,
+				DislikeCount: c.DislikeCount,
+				CreatedBy:    c.CreatedBy,
+				CreatedAt:    c.CreatedAt,
+				UpdatedBy:    c.UpdatedBy,
+				UpdatedAt:    c.UpdatedAt,
+			}
+
+			if c.User.University != nil {
+				tc.UniversityAbbreviatedName = pkg.ToPointer(c.User.University.AbbreviatedName)
+				tc.UniversityImageURL = pkg.ToPointer(c.User.University.ImageURL)
+			}
+
+			threadComments = append(threadComments, tc)
+		}
+
+		td.Comments = threadComments
+	}
+
+	return td
 }
 
 func (s *threadService) LikeThread(ctx context.Context, req request.LikeThreadReq) error {
@@ -352,6 +436,47 @@ func (s *threadService) unDislikeThread(ctx context.Context, req request.Dislike
 		s.cfg.Logger().ErrorWithContext(ctx, "[unDislikeThread] Failed to save thread activity", zap.Error(err))
 
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to save thread activity")
+	}
+
+	return nil
+}
+
+func (s *threadService) CommentThread(ctx context.Context, req request.CommentThreadReq) error {
+	//ctx, endFunc := trace.Start(ctx, "ThreadService.CommentThread", "service")
+	//defer endFunc()
+
+	tx, err := s.db.Begin()
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[CommentThread] Failed to begin transaction", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+	}
+
+	err = s.threadRepo.IncrementCommentsCountTx(req.ThreadID, tx)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[CommentThread] Failed to increment thread comments count", zap.Error(err))
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to increment thread comments count")
+	}
+
+	threadComment := &model.ThreadComment{
+		ID:        uuid.NewString(),
+		ThreadID:  req.ThreadID,
+		UserID:    req.UserID,
+		Content:   req.Content,
+		CreatedBy: req.UserEmail,
+	}
+
+	err = s.threadRepo.SaveThreadCommentTx(threadComment, tx)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[CommentThread] Failed to save thread comment", zap.Error(err))
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to save thread comment")
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[CommentThread] Failed to commit transaction", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
 	}
 
 	return nil

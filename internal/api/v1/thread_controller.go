@@ -33,8 +33,10 @@ func (h *ThreadController) AddRoutes(r *gin.Engine) {
 
 	tr.POST("", middleware.JwtMiddleware(h.cfg), h.CreateThread)
 	tr.GET("", middleware.JwtMiddleware(h.cfg), h.GetThreadList)
+	tr.GET("/:thread_id", middleware.JwtMiddleware(h.cfg), h.GetThreadDetail)
 	tr.PATCH("/like/:thread_id", middleware.JwtMiddleware(h.cfg), h.LikeThread)
 	tr.PATCH("/dislike/:thread_id", middleware.JwtMiddleware(h.cfg), h.DislikeThread)
+	tr.POST("/comment/:thread_id", middleware.JwtMiddleware(h.cfg), h.CommentThread)
 }
 
 func (h *ThreadController) GetThreadList(c *gin.Context) {
@@ -70,6 +72,31 @@ func (h *ThreadController) GetThreadList(c *gin.Context) {
 	resp, err := h.threadSvc.GetThreadList(c.Request.Context(), data)
 	if err != nil {
 		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[GetThreadList] Failed to get thread list", zap.Error(err))
+		httpresp.HttpRespError(c, err)
+		return
+	}
+
+	httpresp.HttpRespSuccess(c, resp, nil)
+	return
+}
+
+func (h *ThreadController) GetThreadDetail(c *gin.Context) {
+	//_, endFunc := trace.Start(c.Copy().Request.Context(), "ThreadController.GetThreadDetail", "controller")
+	//defer endFunc()
+
+	claims := middleware.ParseToken(c)
+	if len(claims.Token) == 0 {
+		httpresp.HttpRespError(c, oops.Code(response.Unauthorized.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusUnauthorized).Errorf(apperr.ErrUnauthorized))
+		return
+	}
+
+	var data request.GetThreadDetailReq
+
+	data.ThreadID = c.Param("thread_id")
+
+	resp, err := h.threadSvc.GetThreadDetail(c.Request.Context(), data)
+	if err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[GetThreadDetail] Failed to get thread detail", zap.Error(err))
 		httpresp.HttpRespError(c, err)
 		return
 	}
@@ -156,6 +183,39 @@ func (h *ThreadController) DislikeThread(c *gin.Context) {
 	err := h.threadSvc.DislikeThread(c.Request.Context(), data)
 	if err != nil {
 		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[DislikeThread] Failed to dislike thread", zap.Error(err))
+		httpresp.HttpRespError(c, err)
+		return
+	}
+
+	httpresp.HttpRespSuccess(c, nil, nil)
+	return
+}
+
+func (h *ThreadController) CommentThread(c *gin.Context) {
+	//_, endFunc := trace.Start(c.Copy().Request.Context(), "ThreadController.CommentThread", "controller")
+	//defer endFunc()
+
+	claims := middleware.ParseToken(c)
+	if len(claims.Token) == 0 {
+		httpresp.HttpRespError(c, oops.Code(response.Unauthorized.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusUnauthorized).Errorf(apperr.ErrUnauthorized))
+		return
+	}
+
+	var data request.CommentThreadReq
+
+	if err := c.ShouldBindJSON(&data); err != nil {
+		httpresp.HttpRespError(c, oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf(apperr.ErrBadRequest))
+		return
+	}
+
+	data.ThreadID = c.Param("thread_id")
+	data.UserID = claims.ID
+	data.UserEmail = claims.Email
+	data.Username = claims.UserName
+
+	err := h.threadSvc.CommentThread(c.Request.Context(), data)
+	if err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[CommentThread] Failed to comment thread", zap.Error(err))
 		httpresp.HttpRespError(c, err)
 		return
 	}

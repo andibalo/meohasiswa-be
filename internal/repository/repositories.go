@@ -34,11 +34,14 @@ type SubThreadRepository interface {
 type ThreadRepository interface {
 	Save(thread *model.Thread) error
 	GetList(req request.GetThreadListReq) ([]model.Thread, pkg.Pagination, error)
+	GetByID(id string) (model.Thread, error)
 	SaveThreadActivity(threadActivity *model.ThreadActivity) error
 	SaveThreadActivityTx(threadActivity *model.ThreadActivity, tx bun.Tx) error
+	SaveThreadCommentTx(threadComment *model.ThreadComment, tx bun.Tx) error
 	IncrementLikesCountTx(threadID string, tx bun.Tx) error
 	DecrementLikesCountTx(threadID string, tx bun.Tx) error
 	IncrementDislikesCountTx(threadID string, tx bun.Tx) error
 	DecrementDislikesCountTx(threadID string, tx bun.Tx) error
+	IncrementCommentsCountTx(threadID string, tx bun.Tx) error
 	GetLastThreadActivityByUserID(threadId string, userId string) (*model.ThreadActivity, error)
 }
