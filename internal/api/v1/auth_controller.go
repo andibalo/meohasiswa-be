@@ -40,6 +40,7 @@ func (h *AuthController) Register(c *gin.Context) {
 	var data request.RegisterUserReq
 
 	if err := c.ShouldBindJSON(&data); err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[Register] Failed to bind json", zap.Error(err))
 		httpresp.HttpRespError(c, oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf(apperr.ErrBadRequest))
 		return
 	}
@@ -62,6 +63,7 @@ func (h *AuthController) Login(c *gin.Context) {
 	var data request.LoginUserReq
 
 	if err := c.ShouldBindJSON(&data); err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[Login] Failed to bind json", zap.Error(err))
 		httpresp.HttpRespError(c, oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf(apperr.ErrBadRequest))
 		return
 	}

@@ -46,9 +46,9 @@ func (s *authService) Register(ctx context.Context, req request.RegisterUserReq)
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Invalid Email/Password")
 	}
 
-	if existingUser != nil {
+	if existingUser != nil && existingUser.ID != "" {
 		s.cfg.Logger().ErrorWithContext(ctx, "[Register] User already exists")
-		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("User already exists")
+		return oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("User already exists")
 	}
 
 	user, err := s.mapCreateUserReqToUserModel(ctx, req)

@@ -38,12 +38,14 @@ func NewServer(cfg config.Config, tracer *trace.Tracer, db *bun.DB) *Server {
 
 	hc := httpclient.Init(httpclient.Options{Config: cfg})
 
+	universityRepo := repository.NewUniversityRepository(db)
 	subThreadRepo := repository.NewSubThreadRepository(db)
 	userRepo := repository.NewUserRepository(db)
 	threadRepo := repository.NewThreadRepository(db)
 
 	notifSvc := notifsvc.NewNotificationService(cfg, hc)
 
+	universitySvc := service.NewUniversityService(cfg, universityRepo, userRepo, db)
 	authSvc := service.NewAuthService(cfg, userRepo, db)
 	userSvc := service.NewUserService(cfg, notifSvc)
 	subThreadSvc := service.NewSubThreadService(cfg, subThreadRepo, db)
@@ -53,8 +55,9 @@ func NewServer(cfg config.Config, tracer *trace.Tracer, db *bun.DB) *Server {
 	ac := v1.NewAuthController(cfg, authSvc)
 	stc := v1.NewSubThreadController(cfg, subThreadSvc)
 	tc := v1.NewThreadController(cfg, threadSvc)
+	unc := v1.NewUniversityController(cfg, universitySvc)
 
-	registerHandlers(router, &api.HealthCheck{}, uc, ac, stc, tc)
+	registerHandlers(router, &api.HealthCheck{}, uc, ac, stc, tc, unc)
 
 	return &Server{
 		gin: router,

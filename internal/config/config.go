@@ -95,10 +95,7 @@ func InitConfig() *AppConfig {
 	viper.SetConfigType("env")
 	viper.SetConfigName(".env") // name of Config file (without extension)
 	viper.AddConfigPath(".")
-
-	if err := viper.ReadInConfig(); err != nil {
-		return &AppConfig{}
-	}
+	viper.AutomaticEnv()
 
 	l := logger.GetLogger(logger.Options{
 		DefaultFields: map[string]string{
@@ -125,6 +122,10 @@ func InitConfig() *AppConfig {
 		Level:     logger.LevelInfo,
 		HookLevel: logger.LevelError,
 	})
+
+	if err := viper.ReadInConfig(); err != nil {
+		l.Warn("Env config file not found")
+	}
 
 	return &AppConfig{
 		logger: l,

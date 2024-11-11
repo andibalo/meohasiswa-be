@@ -92,6 +92,7 @@ func (h *SubThreadController) CreateSubThread(c *gin.Context) {
 	var data request.CreateSubThreadReq
 
 	if err := c.ShouldBindJSON(&data); err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[CreateSubThread] Failed to bind json", zap.Error(err))
 		httpresp.HttpRespError(c, oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf(apperr.ErrBadRequest))
 		return
 	}
@@ -123,6 +124,7 @@ func (h *SubThreadController) FollowSubThread(c *gin.Context) {
 	var data request.FollowSubThreadReq
 
 	if err := c.ShouldBindJSON(&data); err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[FollowSubThread] Failed to bind json", zap.Error(err))
 		httpresp.HttpRespError(c, oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf(apperr.ErrBadRequest))
 		return
 	}
@@ -153,6 +155,7 @@ func (h *SubThreadController) UnfollowSubThread(c *gin.Context) {
 	var data request.UnFollowSubThreadReq
 
 	if err := c.ShouldBindJSON(&data); err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[UnfollowSubThread] Failed to bind json", zap.Error(err))
 		httpresp.HttpRespError(c, oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf(apperr.ErrBadRequest))
 		return
 	}

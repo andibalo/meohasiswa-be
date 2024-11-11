@@ -117,6 +117,7 @@ func (h *ThreadController) CreateThread(c *gin.Context) {
 
 	var data request.CreateThreadReq
 	if err := c.ShouldBindJSON(&data); err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[CreateThread] Failed to bind json", zap.Error(err))
 		httpresp.HttpRespError(c, oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf(apperr.ErrBadRequest))
 		return
 	}
@@ -204,6 +205,7 @@ func (h *ThreadController) CommentThread(c *gin.Context) {
 	var data request.CommentThreadReq
 
 	if err := c.ShouldBindJSON(&data); err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[CommentThread] Failed to bind json", zap.Error(err))
 		httpresp.HttpRespError(c, oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf(apperr.ErrBadRequest))
 		return
 	}

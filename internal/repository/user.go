@@ -101,3 +101,20 @@ func (r *userRepository) SetUserVerifyEmailToUsedTx(id string, tx bun.Tx) error 
 
 	return nil
 }
+
+func (r *userRepository) SetUserHasRateUniversityTx(id string, hru bool, tx bun.Tx) error {
+	user := &model.User{}
+	user.HasRateUniversity = hru
+
+	_, err := tx.NewUpdate().
+		Model(user).
+		Column("has_rate_university").
+		Where("id = ?", id).
+		Exec(context.Background())
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

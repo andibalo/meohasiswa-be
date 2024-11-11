@@ -8,6 +8,7 @@ CREATE TABLE university (
     name VARCHAR(255) NOT NULL,
     abbreviated_name VARCHAR(100) NOT NULL,
     image_url VARCHAR(255) NOT NULL,
+    domain_name VARCHAR(255) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     created_by VARCHAR(100) NOT NULL,
     updated_at TIMESTAMPTZ,
@@ -15,6 +16,7 @@ CREATE TABLE university (
     deleted_at TIMESTAMPTZ,
     deleted_by VARCHAR(100)
 );
+
 
 CREATE TABLE "user" (
     id UUID PRIMARY KEY NOT NULL,
@@ -24,6 +26,7 @@ CREATE TABLE "user" (
     password VARCHAR(255) NOT NULL,
     is_banned BOOLEAN NOT NULL DEFAULT FALSE,
     is_email_verified BOOLEAN NOT NULL DEFAULT FALSE,
+    has_rate_university BOOLEAN NOT NULL DEFAULT FALSE,
     reputation_points INTEGER NOT NULL DEFAULT 0,
     university_id UUID REFERENCES university(id),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -36,6 +39,37 @@ CREATE TABLE "user" (
 
 CREATE INDEX IF NOT EXISTS user_username_index ON "user"(username);
 CREATE INDEX IF NOT EXISTS user_email_index ON "user"(email);
+
+CREATE TABLE university_rating (
+    id UUID PRIMARY KEY NOT NULL,
+    user_id UUID NOT NULL REFERENCES "user"(id),
+    university_id UUID NOT NULL REFERENCES university(id),
+    title VARCHAR(100) NOT NULL,
+    content VARCHAR(255) NOT NULL,
+    facility_rating INTEGER NOT NULL,
+    student_organization_rating INTEGER NOT NULL,
+    social_environment_rating INTEGER NOT NULL,
+    education_quality_rating INTEGER NOT NULL,
+    price_to_value_rating INTEGER NOT NULL,
+    overall_rating NUMERIC(10, 2) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_by VARCHAR(100) NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_by VARCHAR(100) NOT NULL,
+    deleted_at TIMESTAMPTZ,
+    deleted_by VARCHAR(100)
+);
+
+CREATE TABLE university_rating_point (
+  id UUID PRIMARY KEY NOT NULL,
+  university_rating_id UUID NOT NULL REFERENCES university_rating(id),
+  type VARCHAR(10) NOT NULL,
+  content VARCHAR(50) NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  created_by VARCHAR(100) NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_by VARCHAR(100)  NOT NULL
+);
 
 CREATE TABLE user_verify_email (
     id UUID PRIMARY KEY NOT NULL,
@@ -145,3 +179,5 @@ CREATE TABLE thread_comment (
     deleted_at TIMESTAMPTZ,
     deleted_by VARCHAR
 );
+
+

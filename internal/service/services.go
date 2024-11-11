@@ -30,3 +30,7 @@ type ThreadService interface {
 	DislikeThread(ctx context.Context, req request.DislikeThreadReq) error
 	CommentThread(ctx context.Context, req request.CommentThreadReq) error
 }
+
+type UniversityService interface {
+	CreateUniversityRating(ctx context.Context, req request.RateUniversityReq) error
+}

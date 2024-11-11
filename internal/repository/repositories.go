@@ -15,6 +15,7 @@ type UserRepository interface {
 	SetUserToEmailVerifiedTx(id string, tx bun.Tx) error
 	GetUserVerifyEmailByID(id string) (*model.UserVerifyEmail, error)
 	SetUserVerifyEmailToUsedTx(id string, tx bun.Tx) error
+	SetUserHasRateUniversityTx(id string, hru bool, tx bun.Tx) error
 }
 
 type SubThreadRepository interface {
@@ -44,4 +45,11 @@ type ThreadRepository interface {
 	DecrementDislikesCountTx(threadID string, tx bun.Tx) error
 	IncrementCommentsCountTx(threadID string, tx bun.Tx) error
 	GetLastThreadActivityByUserID(threadId string, userId string) (*model.ThreadActivity, error)
+}
+
+type UniversityRepository interface {
+	GetUniversityRatingByUserIDAndUniversityID(userID string, universityID string) (*model.UniversityRating, error)
+	Save(university *model.University) error
+	SaveUniversityRatingTx(universityRating *model.UniversityRating, tx bun.Tx) error
+	BulkSaveUniversityRatingPointsTx(urp []model.UniversityRatingPoints, tx bun.Tx) error
 }
