@@ -7,3 +7,8 @@ type TestLogWithBodyReq struct {
 type TestCallNotifServiceReq struct {
 	TemplateName string `json:"template_name"`
 }
+
+type GetUserProfileReq struct {
+	UserID    string `json:"-"`
+	UserEmail string `json:"-"`
+}

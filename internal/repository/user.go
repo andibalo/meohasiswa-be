@@ -36,10 +36,30 @@ func (r *userRepository) Save(user *model.User) error {
 	return nil
 }
 
+func (r *userRepository) GetUserProfileByEmail(email string) (*model.User, error) {
+	user := &model.User{}
+
+	err := r.db.NewSelect().
+		Model(user).
+		ExcludeColumn("password").
+		Relation("University").
+		Where("email = ?", email).
+		Scan(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
 func (r *userRepository) GetByEmail(email string) (*model.User, error) {
 	user := &model.User{}
 
-	err := r.db.NewSelect().Model(user).Where("email = ?", email).Scan(context.Background())
+	err := r.db.NewSelect().
+		Model(user).
+		ExcludeColumn("password").
+		Where("email = ?", email).
+		Scan(context.Background())
 	if err != nil {
 		return nil, err
 	}

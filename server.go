@@ -47,7 +47,7 @@ func NewServer(cfg config.Config, tracer *trace.Tracer, db *bun.DB) *Server {
 
 	universitySvc := service.NewUniversityService(cfg, universityRepo, userRepo, db)
 	authSvc := service.NewAuthService(cfg, userRepo, db)
-	userSvc := service.NewUserService(cfg, notifSvc)
+	userSvc := service.NewUserService(cfg, notifSvc, userRepo)
 	subThreadSvc := service.NewSubThreadService(cfg, subThreadRepo, db)
 	threadSvc := service.NewThreadService(cfg, threadRepo, db)
 

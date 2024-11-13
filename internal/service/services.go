@@ -2,12 +2,14 @@ package service
 
 import (
 	"context"
+	"github.com/andibalo/meowhasiswa-be/internal/model"
 	"github.com/andibalo/meowhasiswa-be/internal/request"
 	"github.com/andibalo/meowhasiswa-be/internal/response"
 )
 
 type UserService interface {
 	TestCallNotifService(ctx context.Context, req request.TestCallNotifServiceReq) error
+	GetUserProfile(ctx context.Context, req request.GetUserProfileReq) (*model.User, error)
 }
 
 type AuthService interface {
