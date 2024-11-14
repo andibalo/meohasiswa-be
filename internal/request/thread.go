@@ -47,3 +47,13 @@ type CommentThreadReq struct {
 	Username  string `json:"-"`
 	UserEmail string `json:"-"`
 }
+
+type ReplyCommentReq struct {
+	Content  string `json:"content" binding:"required"`
+	ThreadID string `json:"thread_id" binding:"required"`
+
+	CommentID string `json:"-"`
+	UserID    string `json:"-"`
+	Username  string `json:"-"`
+	UserEmail string `json:"-"`
+}

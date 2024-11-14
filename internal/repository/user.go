@@ -57,7 +57,6 @@ func (r *userRepository) GetByEmail(email string) (*model.User, error) {
 
 	err := r.db.NewSelect().
 		Model(user).
-		ExcludeColumn("password").
 		Where("email = ?", email).
 		Scan(context.Background())
 	if err != nil {

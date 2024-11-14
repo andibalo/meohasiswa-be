@@ -31,6 +31,7 @@ type ThreadService interface {
 	LikeThread(ctx context.Context, req request.LikeThreadReq) error
 	DislikeThread(ctx context.Context, req request.DislikeThreadReq) error
 	CommentThread(ctx context.Context, req request.CommentThreadReq) error
+	ReplyComment(ctx context.Context, req request.ReplyCommentReq) error
 }
 
 type UniversityService interface {

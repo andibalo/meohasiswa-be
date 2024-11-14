@@ -481,3 +481,45 @@ func (s *threadService) CommentThread(ctx context.Context, req request.CommentTh
 
 	return nil
 }
+
+func (s *threadService) ReplyComment(ctx context.Context, req request.ReplyCommentReq) error {
+	//ctx, endFunc := trace.Start(ctx, "ThreadService.ReplyComment", "service")
+	//defer endFunc()
+
+	tx, err := s.db.Begin()
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[ReplyComment] Failed to begin transaction", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+	}
+
+	err = s.threadRepo.IncrementCommentReplyCountTx(req.CommentID, tx)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[ReplyComment] Failed to increment comment reply count", zap.Error(err))
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to increment comment reply count")
+	}
+
+	threadCommentReply := &model.ThreadCommentReply{
+		ID:              uuid.NewString(),
+		ThreadID:        req.ThreadID,
+		UserID:          req.UserID,
+		ThreadCommentID: req.CommentID,
+		Content:         req.Content,
+		CreatedBy:       req.UserEmail,
+	}
+
+	err = s.threadRepo.SaveCommentReplyTx(threadCommentReply, tx)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[ReplyComment] Failed to save thread comment reply", zap.Error(err))
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to save thread comment reply")
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[ReplyComment] Failed to commit transaction", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+	}
+
+	return nil
+}

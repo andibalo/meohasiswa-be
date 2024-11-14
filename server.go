@@ -11,6 +11,7 @@ import (
 	"github.com/andibalo/meowhasiswa-be/pkg/httpclient"
 	"github.com/andibalo/meowhasiswa-be/pkg/integration/notifsvc"
 	"github.com/andibalo/meowhasiswa-be/pkg/trace"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/uptrace/bun"
 
@@ -34,6 +35,7 @@ func NewServer(cfg config.Config, tracer *trace.Tracer, db *bun.DB) *Server {
 		router.Use(trace.TracerLogger())
 	}
 
+	router.Use(cors.Default())
 	router.Use(gin.Recovery())
 
 	hc := httpclient.Init(httpclient.Options{Config: cfg})

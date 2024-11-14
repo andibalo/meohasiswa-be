@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	AppAddress         = ":8081"
+	AppAddress         = ":8082"
 	EnvDevEnvironment  = "DEV"
 	EnvProdEnvironment = "PROD"
 	ServiceName        = "core-service"

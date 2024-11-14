@@ -219,3 +219,25 @@ func (r *threadRepository) GetLastThreadActivityByUserID(threadId string, userId
 
 	return threadActivity, nil
 }
+
+func (r *threadRepository) IncrementCommentReplyCountTx(commentID string, tx bun.Tx) error {
+
+	_, err := tx.NewRaw("UPDATE thread_comment SET reply_count = reply_count + 1 WHERE id = ?", commentID).
+		Exec(context.Background())
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *threadRepository) SaveCommentReplyTx(threadCommentReply *model.ThreadCommentReply, tx bun.Tx) error {
+
+	_, err := tx.NewInsert().Model(threadCommentReply).Exec(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
