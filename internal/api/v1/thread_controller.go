@@ -64,9 +64,18 @@ func (h *ThreadController) GetThreadList(c *gin.Context) {
 		return
 	}
 
+	isUserFollowing, err := pkg.GetBoolQueryParams(c, "is_user_following")
+	if err != nil {
+		httpresp.HttpRespError(c, err)
+		return
+	}
+
 	data.Limit = limit
 	data.IsTrending = isTrending
+	data.IsUserFollowing = isUserFollowing
 	data.Cursor = c.Query("cursor")
+	data.UserIDParam = c.Query("user_id")
+
 	data.UserID = claims.ID
 	data.UserEmail = claims.Email
 

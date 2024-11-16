@@ -172,9 +172,16 @@ func (r *threadRepository) GetList(req request.GetThreadListReq) ([]model.Thread
 		Relation("SubThread", func(q *bun.SelectQuery) *bun.SelectQuery {
 			return q.Column("id", "name", "label_color")
 		}).
-		Join("JOIN subthread_follower AS stf ON stf.subthread_id = th.subthread_id").
-		Where("stf.is_following = TRUE").
 		Limit(req.Limit + 1)
+
+	if req.IsUserFollowing {
+		query.Join("JOIN subthread_follower AS stf ON stf.subthread_id = th.subthread_id AND stf.user_id = ?", req.UserID)
+		query.Where("stf.is_following = TRUE")
+	}
+
+	if req.UserIDParam != "" {
+		query.Where("th.user_id = ?", req.UserIDParam)
+	}
 
 	if req.Cursor != "" {
 		createdAt, id := pkg.GetCursorData(req.Cursor)
