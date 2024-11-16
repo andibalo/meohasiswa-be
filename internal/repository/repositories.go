@@ -51,6 +51,7 @@ type ThreadRepository interface {
 }
 
 type UniversityRepository interface {
+	GetList(req request.GetUniversityRatingListReq) ([]model.UniversityRating, pkg.Pagination, error)
 	GetUniversityRatingByUserIDAndUniversityID(userID string, universityID string) (*model.UniversityRating, error)
 	Save(university *model.University) error
 	SaveUniversityRatingTx(universityRating *model.UniversityRating, tx bun.Tx) error

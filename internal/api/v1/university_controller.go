@@ -6,6 +6,7 @@ import (
 	"github.com/andibalo/meowhasiswa-be/internal/request"
 	"github.com/andibalo/meowhasiswa-be/internal/response"
 	"github.com/andibalo/meowhasiswa-be/internal/service"
+	"github.com/andibalo/meowhasiswa-be/pkg"
 	"github.com/andibalo/meowhasiswa-be/pkg/apperr"
 	"github.com/andibalo/meowhasiswa-be/pkg/httpresp"
 	"github.com/gin-gonic/gin"
@@ -30,8 +31,42 @@ func NewUniversityController(cfg config.Config, universitySvc service.University
 func (h *UniversityController) AddRoutes(r *gin.Engine) {
 	ur := r.Group("/api/v1/university")
 
+	ur.GET("/ratings", middleware.JwtMiddleware(h.cfg), h.GetUniversityRatingList)
 	ur.POST("/rate/:university_id", middleware.JwtMiddleware(h.cfg), h.RateUniversity)
+}
 
+func (h *UniversityController) GetUniversityRatingList(c *gin.Context) {
+	//_, endFunc := trace.Start(c.Copy().Request.Context(), "UniversityController.GetUniversityRatingList", "controller")
+	//defer endFunc()
+
+	claims := middleware.ParseToken(c)
+	if len(claims.Token) == 0 {
+		httpresp.HttpRespError(c, oops.Code(response.Unauthorized.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusUnauthorized).Errorf(apperr.ErrUnauthorized))
+		return
+	}
+
+	var data request.GetUniversityRatingListReq
+
+	limit, err := pkg.GetIntQueryParams(c, 10, "limit")
+	if err != nil {
+		httpresp.HttpRespError(c, err)
+		return
+	}
+
+	data.Limit = limit
+	data.Cursor = c.Query("cursor")
+	data.UserID = claims.ID
+	data.UserEmail = claims.Email
+
+	resp, err := h.universitySvc.GetUniversityRatingList(c.Request.Context(), data)
+	if err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[GetUniversityRatingList] Failed to get university rating list", zap.Error(err))
+		httpresp.HttpRespError(c, err)
+		return
+	}
+
+	httpresp.HttpRespSuccess(c, resp, nil)
+	return
 }
 
 func (h *UniversityController) RateUniversity(c *gin.Context) {

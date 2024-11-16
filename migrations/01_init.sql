@@ -46,6 +46,7 @@ CREATE TABLE university_rating (
     university_id UUID NOT NULL REFERENCES university(id),
     title VARCHAR(100) NOT NULL,
     content VARCHAR(255) NOT NULL,
+    university_major VARCHAR(100) NOT NULL,
     facility_rating INTEGER NOT NULL,
     student_organization_rating INTEGER NOT NULL,
     social_environment_rating INTEGER NOT NULL,

@@ -2,8 +2,12 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"github.com/andibalo/meowhasiswa-be/internal/model"
+	"github.com/andibalo/meowhasiswa-be/internal/request"
+	"github.com/andibalo/meowhasiswa-be/pkg"
 	"github.com/uptrace/bun"
+	"time"
 )
 
 type universityRepository struct {
@@ -14,6 +18,54 @@ func NewUniversityRepository(db *bun.DB) UniversityRepository {
 	return &universityRepository{
 		db: db,
 	}
+}
+
+func (r *universityRepository) GetList(req request.GetUniversityRatingListReq) ([]model.UniversityRating, pkg.Pagination, error) {
+
+	var (
+		uniRatings []model.UniversityRating
+		nextCursor string
+	)
+
+	pagination := pkg.Pagination{}
+
+	query := r.db.NewSelect().
+		Column("unir.*").
+		Model(&uniRatings).
+		Relation("User", func(q *bun.SelectQuery) *bun.SelectQuery {
+			return q.Column("id", "username")
+		}).
+		Relation("University", func(q *bun.SelectQuery) *bun.SelectQuery {
+			return q.Column("id", "name", "abbreviated_name", "image_url")
+		}).
+		Relation("UniversityRatingPoints").
+		Limit(req.Limit + 1)
+
+	if req.Cursor != "" {
+		createdAt, id := pkg.GetCursorData(req.Cursor)
+		query.Where("(unir.created_at, unir.id) <= (?, ?)", createdAt, id)
+
+		query.Order("unir.created_at desc", "unir.id desc")
+
+	} else {
+		query.Order("unir.created_at desc")
+	}
+
+	err := query.Scan(context.Background())
+	if err != nil {
+		return uniRatings, pagination, err
+	}
+
+	if len(uniRatings) > req.Limit {
+		lastUniRating := uniRatings[len(uniRatings)-1]
+		nextCursor = fmt.Sprintf("%s_%s", lastUniRating.CreatedAt.Format(time.RFC3339Nano), lastUniRating.ID)
+		uniRatings = uniRatings[:req.Limit] // Trim to the requested limit
+	}
+
+	pagination.CurrentCursor = req.Cursor
+	pagination.NextCursor = nextCursor
+
+	return uniRatings, pagination, nil
 }
 
 func (r *universityRepository) Save(university *model.University) error {

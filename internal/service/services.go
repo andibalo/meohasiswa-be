@@ -35,5 +35,6 @@ type ThreadService interface {
 }
 
 type UniversityService interface {
+	GetUniversityRatingList(ctx context.Context, req request.GetUniversityRatingListReq) (response.GetUniversityRatingListResponse, error)
 	CreateUniversityRating(ctx context.Context, req request.RateUniversityReq) error
 }

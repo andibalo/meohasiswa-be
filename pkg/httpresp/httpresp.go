@@ -42,7 +42,8 @@ type Pagination struct {
 
 // HTTPErrResp http error response
 type HTTPErrResp struct {
-	Meta Meta `json:"metadata"`
+	Meta    Meta   `json:"metadata"`
+	Success string `json:"success"`
 }
 
 func HttpRespError(c *gin.Context, err error) {
@@ -72,6 +73,7 @@ func HttpRespError(c *gin.Context, err error) {
 			Error:      err.Error(),
 			Timestamp:  time.Now().Format(time.RFC3339),
 		},
+		Success: "false",
 	}
 
 	c.Set("status_code", statusCode)

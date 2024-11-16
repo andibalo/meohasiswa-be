@@ -97,6 +97,7 @@ func (s *universityService) CreateUniversityRating(ctx context.Context, req requ
 		UniversityID:              req.UniversityID,
 		Title:                     req.Title,
 		Content:                   req.Content,
+		UniversityMajor:           req.UniversityMajor,
 		FacilityRating:            req.FacilityRating,
 		StudentOrganizationRating: req.StudentOrganizationRating,
 		SocialEnvironmentRating:   req.SocialEnvironmentRating,
@@ -119,7 +120,7 @@ func (s *universityService) CreateUniversityRating(ctx context.Context, req requ
 		uniRatingPoints = append(uniRatingPoints, model.UniversityRatingPoints{
 			ID:                 uuid.NewString(),
 			UniversityRatingID: uniRating.ID,
-			Type:               constants.UNI_PRO,
+			Type:               constants.UNI_RATING_PRO,
 			Content:            pro,
 			CreatedBy:          req.UserEmail,
 			UpdatedBy:          req.UserEmail,
@@ -130,7 +131,7 @@ func (s *universityService) CreateUniversityRating(ctx context.Context, req requ
 		uniRatingPoints = append(uniRatingPoints, model.UniversityRatingPoints{
 			ID:                 uuid.NewString(),
 			UniversityRatingID: uniRating.ID,
-			Type:               constants.UNI_CON,
+			Type:               constants.UNI_RATING_CON,
 			Content:            con,
 			CreatedBy:          req.UserEmail,
 			UpdatedBy:          req.UserEmail,
@@ -160,4 +161,80 @@ func (s *universityService) CreateUniversityRating(ctx context.Context, req requ
 	}
 
 	return nil
+}
+
+func (s *universityService) GetUniversityRatingList(ctx context.Context, req request.GetUniversityRatingListReq) (response.GetUniversityRatingListResponse, error) {
+	//ctx, endFunc := trace.Start(ctx, "UniversityService.GetUniversityRatingList", "service")
+	//defer endFunc()
+
+	var resp response.GetUniversityRatingListResponse
+
+	uniRatings, pagination, err := s.universityRepo.GetList(req)
+
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[GetUniversityRatingList] Failed to get university rating list", zap.Error(err))
+
+		return resp, oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to get university rating list")
+	}
+
+	resp.Meta = response.PaginationMeta{
+		CurrentCursor: pagination.CurrentCursor,
+		NextCursor:    pagination.NextCursor,
+	}
+
+	resp.Data = s.mapUniversityRatingListData(uniRatings)
+
+	return resp, nil
+}
+
+func (s *universityService) mapUniversityRatingListData(uniRatings []model.UniversityRating) []response.UniversityRatingListData {
+
+	uniRatingData := []response.UniversityRatingListData{}
+
+	for _, ur := range uniRatings {
+
+		uniRatingPros := []string{}
+		uniRatingCons := []string{}
+
+		urd := response.UniversityRatingListData{
+			ID:                        ur.ID,
+			UserID:                    ur.UserID,
+			UserName:                  ur.User.Username,
+			UniversityID:              ur.UniversityID,
+			UniversityAbbreviatedName: ur.University.AbbreviatedName,
+			UniversityImageURL:        ur.University.ImageURL,
+			UniversityMajor:           ur.UniversityMajor,
+			Title:                     ur.Title,
+			Content:                   ur.Content,
+			FacilityRating:            ur.FacilityRating,
+			StudentOrganizationRating: ur.StudentOrganizationRating,
+			SocialEnvironmentRating:   ur.SocialEnvironmentRating,
+			EducationQualityRating:    ur.EducationQualityRating,
+			PriceToValueRating:        ur.PriceToValueRating,
+			OverallRating:             ur.OverallRating,
+			CreatedBy:                 ur.CreatedBy,
+			CreatedAt:                 ur.CreatedAt,
+			UpdatedBy:                 ur.UpdatedBy,
+			UpdatedAt:                 ur.UpdatedAt,
+		}
+
+		for _, urp := range ur.UniversityRatingPoints {
+			if urp.Type == constants.UNI_RATING_PRO {
+				uniRatingPros = append(uniRatingPros, urp.Content)
+				continue
+			}
+
+			if urp.Type == constants.UNI_RATING_CON {
+				uniRatingCons = append(uniRatingCons, urp.Content)
+				continue
+			}
+		}
+
+		urd.Pros = uniRatingPros
+		urd.Cons = uniRatingCons
+
+		uniRatingData = append(uniRatingData, urd)
+	}
+
+	return uniRatingData
 }
