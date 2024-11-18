@@ -27,11 +27,13 @@ type Config interface {
 	TraceConfig() trace.Config
 
 	HttpExternalServiceTimeout() int64
+	HttpMaxUploadSizeMB() int
 
 	GetNotifSvcCfg() NotifSvc
 
 	GetFlags() Flag
 	GetAuthCfg() Auth
+	GetAWSCfg() AWS
 }
 
 type AppConfig struct {
@@ -43,6 +45,7 @@ type AppConfig struct {
 	NotifSvc NotifSvc
 	Flag     Flag
 	Auth     Auth
+	Aws      AWS
 }
 
 type app struct {
@@ -79,6 +82,7 @@ type NotifSvc struct {
 
 type http struct {
 	ServiceExternalTimeout int64
+	MaxUploadSizeMB        int
 }
 
 type Flag struct {
@@ -89,6 +93,17 @@ type Auth struct {
 	UserSecretCodeExpiryMins int
 	JWTSecret                string
 	JWTStaticToken           string
+}
+
+type AWS struct {
+	Region            string
+	ACCESS_KEY_ID     string
+	SECRET_ACCESS_KEY string
+	S3
+}
+
+type S3 struct {
+	DefaultBucket string
 }
 
 func InitConfig() *AppConfig {
@@ -146,6 +161,9 @@ func InitConfig() *AppConfig {
 			Name:     viper.GetString("DB_NAME"),
 			MaxPool:  viper.GetInt("DB_MAX_POOLING_CONNECTION"),
 		},
+		Http: http{
+			MaxUploadSizeMB: viper.GetInt("MAX_UPLOAD_SIZE_MB"),
+		},
 		Tracer: tracer{
 			ServiceName:          ServiceName,
 			CollectorURL:         viper.GetString("OTEL_APM_SERVER_URL"),
@@ -164,6 +182,14 @@ func InitConfig() *AppConfig {
 			UserSecretCodeExpiryMins: viper.GetInt("USER_SECRET_CODE_EXPIRY_MINS"),
 			JWTSecret:                viper.GetString("JWT_SECRET"),
 			JWTStaticToken:           viper.GetString("JWT_STATIC_TOKEN"),
+		},
+		Aws: AWS{
+			Region:            viper.GetString("AWS_REGION"),
+			ACCESS_KEY_ID:     viper.GetString("AWS_ACCESS_KEY_ID"),
+			SECRET_ACCESS_KEY: viper.GetString("AWS_SECRET_ACCESS_KEY"),
+			S3: S3{
+				DefaultBucket: viper.GetString("AWS_S3_DEFAULT_BUCKET"),
+			},
 		},
 	}
 }
@@ -218,6 +244,11 @@ func (c *AppConfig) HttpExternalServiceTimeout() int64 {
 	return c.Http.ServiceExternalTimeout
 }
 
+func (c *AppConfig) HttpMaxUploadSizeMB() int {
+
+	return c.Http.MaxUploadSizeMB
+}
+
 func (c *AppConfig) GetNotifSvcCfg() NotifSvc {
 	return c.NotifSvc
 }
@@ -228,4 +259,8 @@ func (c *AppConfig) GetFlags() Flag {
 
 func (c *AppConfig) GetAuthCfg() Auth {
 	return c.Auth
+}
+
+func (c *AppConfig) GetAWSCfg() AWS {
+	return c.Aws
 }

@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"github.com/andibalo/meowhasiswa-be/internal/model"
 	"github.com/andibalo/meowhasiswa-be/internal/request"
 	"github.com/andibalo/meowhasiswa-be/pkg"
@@ -56,4 +57,8 @@ type UniversityRepository interface {
 	Save(university *model.University) error
 	SaveUniversityRatingTx(universityRating *model.UniversityRating, tx bun.Tx) error
 	BulkSaveUniversityRatingPointsTx(urp []model.UniversityRatingPoints, tx bun.Tx) error
+}
+
+type FileRepository interface {
+	Upload(ctx context.Context, uploadFileData model.UploadFileDTO) (model.UploadFileOutputDTO, error)
 }

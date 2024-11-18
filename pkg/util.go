@@ -36,3 +36,11 @@ func GetCursorData(cursor string) (string, string) {
 
 	return splitCursor[0], splitCursor[1]
 }
+
+func NullStrToStr(s *string) string {
+	if s != nil {
+		return *s
+	}
+
+	return ""
+}

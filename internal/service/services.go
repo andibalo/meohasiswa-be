@@ -38,3 +38,7 @@ type UniversityService interface {
 	GetUniversityRatingList(ctx context.Context, req request.GetUniversityRatingListReq) (response.GetUniversityRatingListResponse, error)
 	CreateUniversityRating(ctx context.Context, req request.RateUniversityReq) error
 }
+
+type ImageService interface {
+	UploadImage(ctx context.Context, fileData model.File) (response.UploadImageResp, error)
+}

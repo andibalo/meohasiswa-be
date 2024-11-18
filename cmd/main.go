@@ -8,6 +8,8 @@ import (
 	"github.com/andibalo/meowhasiswa-be/internal/config"
 	"github.com/andibalo/meowhasiswa-be/pkg/db"
 	"github.com/andibalo/meowhasiswa-be/pkg/trace"
+	awsConfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"log"
 	"net/http"
 	"os"
@@ -30,7 +32,15 @@ func main() {
 		tracer = initTracer(cfg)
 	}
 
-	server := core.NewServer(cfg, tracer, database)
+	awsCfg, err := awsConfig.LoadDefaultConfig(context.TODO(), awsConfig.WithRegion(cfg.GetAWSCfg().Region))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Create an Amazon S3 service client
+	client := s3.NewFromConfig(awsCfg)
+
+	server := core.NewServer(cfg, tracer, database, client)
 
 	cfg.Logger().Info(fmt.Sprintf("Server starting at port %s", cfg.AppAddress()))
 

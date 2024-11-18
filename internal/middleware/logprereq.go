@@ -8,7 +8,20 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"io"
+	"slices"
 )
+
+var skipLogPayloadPaths = []string{
+	"/api/v1/image/upload",
+}
+
+func shouldSkipLogPayload(uriPath string) bool {
+	if slices.Contains(skipLogPayloadPaths, uriPath) {
+		return true
+	}
+
+	return false
+}
 
 func LogPreReq(logger logger.Logger) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
@@ -29,6 +42,18 @@ func LogPreReq(logger logger.Logger) gin.HandlerFunc {
 		//ctx.Set("trace.id", traceID)
 		ctx.Set("path", ctx.Request.URL.Path)
 		ctx.Set("method", ctx.Request.Method)
+
+		if shouldSkipLogPayload(ctx.Request.URL.Path) {
+			// payload for log
+			logger.InfoWithContext(ctx, "Interceptor Log")
+
+			// set req body again
+			ctx.Request.Body = io.NopCloser(bytes.NewBuffer(payload))
+
+			ctx.Next()
+
+			return
+		}
 
 		// payload for log
 		logger.InfoWithContext(ctx, "Interceptor Log",

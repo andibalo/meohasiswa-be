@@ -10,7 +10,9 @@ import (
 	"github.com/andibalo/meowhasiswa-be/internal/service"
 	"github.com/andibalo/meowhasiswa-be/pkg/httpclient"
 	"github.com/andibalo/meowhasiswa-be/pkg/integration/notifsvc"
+	s3Repository "github.com/andibalo/meowhasiswa-be/pkg/s3"
 	"github.com/andibalo/meowhasiswa-be/pkg/trace"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/uptrace/bun"
@@ -23,7 +25,7 @@ type Server struct {
 	srv *http.Server
 }
 
-func NewServer(cfg config.Config, tracer *trace.Tracer, db *bun.DB) *Server {
+func NewServer(cfg config.Config, tracer *trace.Tracer, db *bun.DB, s3Client *s3.Client) *Server {
 
 	router := gin.New()
 
@@ -40,26 +42,28 @@ func NewServer(cfg config.Config, tracer *trace.Tracer, db *bun.DB) *Server {
 
 	hc := httpclient.Init(httpclient.Options{Config: cfg})
 
+	s3Repo := s3Repository.NewS3Repository(cfg, s3Client)
 	universityRepo := repository.NewUniversityRepository(db)
 	subThreadRepo := repository.NewSubThreadRepository(db)
 	userRepo := repository.NewUserRepository(db)
 	threadRepo := repository.NewThreadRepository(db)
 
 	notifSvc := notifsvc.NewNotificationService(cfg, hc)
-
+	imageSvc := service.NewImageService(cfg, s3Repo)
 	universitySvc := service.NewUniversityService(cfg, universityRepo, userRepo, db)
 	authSvc := service.NewAuthService(cfg, userRepo, db)
 	userSvc := service.NewUserService(cfg, notifSvc, userRepo)
 	subThreadSvc := service.NewSubThreadService(cfg, subThreadRepo, db)
 	threadSvc := service.NewThreadService(cfg, threadRepo, db)
 
+	ic := v1.NewImageController(cfg, imageSvc)
 	uc := v1.NewUserController(cfg, userSvc)
 	ac := v1.NewAuthController(cfg, authSvc)
 	stc := v1.NewSubThreadController(cfg, subThreadSvc)
 	tc := v1.NewThreadController(cfg, threadSvc)
 	unc := v1.NewUniversityController(cfg, universitySvc)
 
-	registerHandlers(router, &api.HealthCheck{}, uc, ac, stc, tc, unc)
+	registerHandlers(router, &api.HealthCheck{}, uc, ac, stc, tc, unc, ic)
 
 	return &Server{
 		gin: router,
