@@ -26,6 +26,7 @@ type SubThreadService interface {
 
 type ThreadService interface {
 	CreateThread(ctx context.Context, req request.CreateThreadReq) error
+	UpdateThread(ctx context.Context, req request.UpdateThreadReq) error
 	GetThreadList(ctx context.Context, req request.GetThreadListReq) (response.GetThreadListResponse, error)
 	GetThreadDetail(ctx context.Context, req request.GetThreadDetailReq) (response.GetThreadDetailResponse, error)
 	LikeThread(ctx context.Context, req request.LikeThreadReq) error

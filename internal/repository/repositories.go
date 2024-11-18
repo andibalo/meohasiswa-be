@@ -36,6 +36,7 @@ type SubThreadRepository interface {
 
 type ThreadRepository interface {
 	Save(thread *model.Thread) error
+	UpdateByID(threadID string, updateValues map[string]interface{}) error
 	GetList(req request.GetThreadListReq) ([]model.Thread, pkg.Pagination, error)
 	GetByID(id string) (model.Thread, error)
 	GetLastThreadActivityByUserID(threadId string, userId string) (*model.ThreadActivity, error)

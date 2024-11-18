@@ -34,6 +34,7 @@ func (h *ThreadController) AddRoutes(r *gin.Engine) {
 	tr.POST("", middleware.JwtMiddleware(h.cfg), h.CreateThread)
 	tr.GET("", middleware.JwtMiddleware(h.cfg), h.GetThreadList)
 	tr.GET("/:thread_id", middleware.JwtMiddleware(h.cfg), h.GetThreadDetail)
+	tr.PATCH("/:thread_id", middleware.JwtMiddleware(h.cfg), h.UpdateThread)
 	tr.PATCH("/like/:thread_id", middleware.JwtMiddleware(h.cfg), h.LikeThread)
 	tr.PATCH("/dislike/:thread_id", middleware.JwtMiddleware(h.cfg), h.DislikeThread)
 	tr.POST("/comment/:thread_id", middleware.JwtMiddleware(h.cfg), h.CommentThread)
@@ -112,6 +113,39 @@ func (h *ThreadController) GetThreadDetail(c *gin.Context) {
 	}
 
 	httpresp.HttpRespSuccess(c, resp, nil)
+	return
+}
+
+func (h *ThreadController) UpdateThread(c *gin.Context) {
+	//_, endFunc := trace.Start(c.Copy().Request.Context(), "ThreadController.UpdateThread", "controller")
+	//defer endFunc()
+
+	claims := middleware.ParseToken(c)
+	if len(claims.Token) == 0 {
+		httpresp.HttpRespError(c, oops.Code(response.Unauthorized.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusUnauthorized).Errorf(apperr.ErrUnauthorized))
+		return
+	}
+
+	var data request.UpdateThreadReq
+	if err := c.ShouldBindJSON(&data); err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[UpdateThread] Failed to bind json", zap.Error(err))
+		httpresp.HttpRespError(c, oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf(apperr.ErrBadRequest))
+		return
+	}
+
+	data.ThreadID = c.Param("thread_id")
+	data.UserID = claims.ID
+	data.UserEmail = claims.Email
+	data.Username = claims.UserName
+
+	err := h.threadSvc.UpdateThread(c.Request.Context(), data)
+	if err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[UpdateThread] Failed to update thread by id", zap.Error(err))
+		httpresp.HttpRespError(c, err)
+		return
+	}
+
+	httpresp.HttpRespSuccess(c, nil, nil)
 	return
 }
 

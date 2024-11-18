@@ -18,6 +18,7 @@ import (
 	"github.com/uptrace/bun"
 	"go.uber.org/zap"
 	"net/http"
+	"time"
 )
 
 type threadService struct {
@@ -59,6 +60,40 @@ func (s *threadService) CreateThread(ctx context.Context, req request.CreateThre
 		s.cfg.Logger().ErrorWithContext(ctx, "[CreateThread] Failed to insert thread to database", zap.Error(err))
 
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to create thread")
+	}
+
+	return nil
+}
+
+func (s *threadService) UpdateThread(ctx context.Context, req request.UpdateThreadReq) error {
+	//ctx, endFunc := trace.Start(ctx, "ThreadService.UpdateThread", "service")
+	//defer endFunc()
+
+	_, err := s.threadRepo.GetByID(req.ThreadID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			s.cfg.Logger().ErrorWithContext(ctx, "[UpdateThread] Thread not found", zap.Error(err))
+			return oops.Code(response.NotFound.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusNotFound).Errorf("Thread not found")
+		}
+
+		s.cfg.Logger().ErrorWithContext(ctx, "[UpdateThread] Failed to update thread by id", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update thread by id")
+	}
+
+	updateValues := map[string]interface{}{
+		"title":           req.Title,
+		"content":         req.Content,
+		"content_summary": req.ContentSummary,
+		"updated_by":      req.UserEmail,
+		"updated_at":      time.Now(),
+	}
+
+	err = s.threadRepo.UpdateByID(req.ThreadID, updateValues)
+
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[UpdateThread] Failed to update thread in database", zap.Error(err))
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update thread")
 	}
 
 	return nil

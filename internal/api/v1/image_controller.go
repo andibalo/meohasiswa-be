@@ -2,6 +2,7 @@ package v1
 
 import (
 	"github.com/andibalo/meowhasiswa-be/internal/config"
+	"github.com/andibalo/meowhasiswa-be/internal/middleware"
 	"github.com/andibalo/meowhasiswa-be/internal/model"
 	"github.com/andibalo/meowhasiswa-be/internal/response"
 	"github.com/andibalo/meowhasiswa-be/internal/service"
@@ -31,7 +32,7 @@ func NewImageController(cfg config.Config, imageSvc service.ImageService) *Image
 func (h *ImageController) AddRoutes(r *gin.Engine) {
 	ir := r.Group("/api/v1/image")
 
-	ir.POST("/upload", h.UploadImage)
+	ir.POST("/upload", middleware.JwtMiddleware(h.cfg), h.UploadImage)
 }
 
 func (h *ImageController) UploadImage(c *gin.Context) {
