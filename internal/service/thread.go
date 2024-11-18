@@ -76,7 +76,7 @@ func (s *threadService) UpdateThread(ctx context.Context, req request.UpdateThre
 			return oops.Code(response.NotFound.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusNotFound).Errorf("Thread not found")
 		}
 
-		s.cfg.Logger().ErrorWithContext(ctx, "[UpdateThread] Failed to update thread by id", zap.Error(err))
+		s.cfg.Logger().ErrorWithContext(ctx, "[UpdateThread] Failed to get thread by id", zap.Error(err))
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update thread by id")
 	}
 
@@ -94,6 +94,37 @@ func (s *threadService) UpdateThread(ctx context.Context, req request.UpdateThre
 		s.cfg.Logger().ErrorWithContext(ctx, "[UpdateThread] Failed to update thread in database", zap.Error(err))
 
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update thread")
+	}
+
+	return nil
+}
+
+func (s *threadService) DeleteThread(ctx context.Context, req request.DeleteThreadReq) error {
+	//ctx, endFunc := trace.Start(ctx, "ThreadService.DeleteThread", "service")
+	//defer endFunc()
+
+	_, err := s.threadRepo.GetByID(req.ThreadID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			s.cfg.Logger().ErrorWithContext(ctx, "[DeleteThread] Thread not found", zap.Error(err))
+			return oops.Code(response.NotFound.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusNotFound).Errorf("Thread not found")
+		}
+
+		s.cfg.Logger().ErrorWithContext(ctx, "[DeleteThread] Failed to delete thread by id", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to delete thread by id")
+	}
+
+	updateValues := map[string]interface{}{
+		"deleted_by": req.UserEmail,
+		"deleted_at": time.Now(),
+	}
+
+	err = s.threadRepo.DeleteByID(req.ThreadID, updateValues)
+
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[DeleteThread] Failed to delete thread in database", zap.Error(err))
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to delete thread")
 	}
 
 	return nil

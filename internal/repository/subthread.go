@@ -189,3 +189,31 @@ func (r *subThreadRepository) UpdateSubThreadFollowerIsFollowingTx(id string, is
 
 	return nil
 }
+
+func (r *subThreadRepository) UpdateByID(subThreadID string, updateValues map[string]interface{}) error {
+
+	_, err := r.db.NewUpdate().
+		Model(&updateValues).
+		TableExpr("subthread").
+		Where("id = ?", subThreadID).
+		Exec(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *subThreadRepository) DeleteByID(subThreadID string, updateValues map[string]interface{}) error {
+
+	_, err := r.db.NewUpdate().
+		Model(&updateValues).
+		TableExpr("subthread").
+		Where("id = ?", subThreadID).
+		Exec(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

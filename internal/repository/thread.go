@@ -44,6 +44,20 @@ func (r *threadRepository) UpdateByID(threadID string, updateValues map[string]i
 	return nil
 }
 
+func (r *threadRepository) DeleteByID(threadID string, updateValues map[string]interface{}) error {
+
+	_, err := r.db.NewUpdate().
+		Model(&updateValues).
+		TableExpr("thread").
+		Where("id = ?", threadID).
+		Exec(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *threadRepository) IncrementCommentsCountTx(threadID string, tx bun.Tx) error {
 
 	_, err := tx.NewRaw("UPDATE thread SET comment_count = comment_count + 1 WHERE id = ?", threadID).

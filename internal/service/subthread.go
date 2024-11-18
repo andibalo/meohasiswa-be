@@ -16,6 +16,7 @@ import (
 	"github.com/uptrace/bun"
 	"go.uber.org/zap"
 	"net/http"
+	"time"
 )
 
 type subThreadService struct {
@@ -88,6 +89,80 @@ func (s *subThreadService) CreateSubThread(ctx context.Context, req request.Crea
 		s.cfg.Logger().ErrorWithContext(ctx, "[CreateSubThread] Failed to insert subthread to database", zap.Error(err))
 
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to create subthread")
+	}
+
+	return nil
+}
+
+func (s *subThreadService) UpdateSubThread(ctx context.Context, req request.UpdateSubThreadReq) error {
+	//ctx, endFunc := trace.Start(ctx, "SubThreadService.UpdateSubThread", "service")
+	//defer endFunc()
+
+	_, err := s.subThreadRepo.GetByID(req.SubThreadID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			s.cfg.Logger().ErrorWithContext(ctx, "[UpdateSubThread] SubThread not found", zap.Error(err))
+			return oops.Code(response.NotFound.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusNotFound).Errorf("SubThread not found")
+		}
+
+		s.cfg.Logger().ErrorWithContext(ctx, "[UpdateSubThread] Failed to get subthread by id", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update subthread by id")
+	}
+
+	updateValues := map[string]interface{}{
+		"name":        req.Name,
+		"description": req.Description,
+		"image_url":   req.ImageUrl,
+		"label_color": req.LabelColor,
+		"updated_by":  req.UserEmail,
+		"updated_at":  time.Now(),
+	}
+
+	if req.UniversityID != nil && *req.UniversityID != "" {
+		updateValues["university_id"] = req.UniversityID
+	}
+
+	if req.IsUniversitySubThread != nil {
+		updateValues["is_university_subthread"] = req.IsUniversitySubThread
+	}
+
+	err = s.subThreadRepo.UpdateByID(req.SubThreadID, updateValues)
+
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[UpdateSubThread] Failed to update subthread in database", zap.Error(err))
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update subthread")
+	}
+
+	return nil
+}
+
+func (s *subThreadService) DeleteSubThread(ctx context.Context, req request.DeleteSubThreadReq) error {
+	//ctx, endFunc := trace.Start(ctx, "SubThreadService.DeleteSubThread", "service")
+	//defer endFunc()
+
+	_, err := s.subThreadRepo.GetByID(req.SubThreadID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			s.cfg.Logger().ErrorWithContext(ctx, "[DeleteSubThread] SubThread not found", zap.Error(err))
+			return oops.Code(response.NotFound.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusNotFound).Errorf("SubThread not found")
+		}
+
+		s.cfg.Logger().ErrorWithContext(ctx, "[DeleteSubThread] Failed to delete subthread by id", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to delete subthread by id")
+	}
+
+	updateValues := map[string]interface{}{
+		"deleted_by": req.UserEmail,
+		"deleted_at": time.Now(),
+	}
+
+	err = s.subThreadRepo.DeleteByID(req.SubThreadID, updateValues)
+
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[DeleteSubThread] Failed to delete subthread in database", zap.Error(err))
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to delete subthread")
 	}
 
 	return nil

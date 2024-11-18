@@ -34,6 +34,7 @@ func (h *ThreadController) AddRoutes(r *gin.Engine) {
 	tr.POST("", middleware.JwtMiddleware(h.cfg), h.CreateThread)
 	tr.GET("", middleware.JwtMiddleware(h.cfg), h.GetThreadList)
 	tr.GET("/:thread_id", middleware.JwtMiddleware(h.cfg), h.GetThreadDetail)
+	tr.DELETE("/:thread_id", middleware.JwtMiddleware(h.cfg), h.DeleteThread)
 	tr.PATCH("/:thread_id", middleware.JwtMiddleware(h.cfg), h.UpdateThread)
 	tr.PATCH("/like/:thread_id", middleware.JwtMiddleware(h.cfg), h.LikeThread)
 	tr.PATCH("/dislike/:thread_id", middleware.JwtMiddleware(h.cfg), h.DislikeThread)
@@ -172,6 +173,34 @@ func (h *ThreadController) CreateThread(c *gin.Context) {
 	err := h.threadSvc.CreateThread(c.Request.Context(), data)
 	if err != nil {
 		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[CreateThread] Failed to create thread", zap.Error(err))
+		httpresp.HttpRespError(c, err)
+		return
+	}
+
+	httpresp.HttpRespSuccess(c, nil, nil)
+	return
+}
+
+func (h *ThreadController) DeleteThread(c *gin.Context) {
+	//_, endFunc := trace.Start(c.Copy().Request.Context(), "ThreadController.DeleteThread", "controller")
+	//defer endFunc()
+
+	claims := middleware.ParseToken(c)
+	if len(claims.Token) == 0 {
+		httpresp.HttpRespError(c, oops.Code(response.Unauthorized.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusUnauthorized).Errorf(apperr.ErrUnauthorized))
+		return
+	}
+
+	var data request.DeleteThreadReq
+
+	data.ThreadID = c.Param("thread_id")
+	data.UserID = claims.ID
+	data.UserEmail = claims.Email
+	data.Username = claims.UserName
+
+	err := h.threadSvc.DeleteThread(c.Request.Context(), data)
+	if err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[DeleteThread] Failed to delete thread by id", zap.Error(err))
 		httpresp.HttpRespError(c, err)
 		return
 	}

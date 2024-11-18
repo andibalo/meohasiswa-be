@@ -33,6 +33,8 @@ func (h *SubThreadController) AddRoutes(r *gin.Engine) {
 
 	str.GET("", middleware.JwtMiddleware(h.cfg), h.GetListSubThread)
 	str.POST("", middleware.JwtMiddleware(h.cfg), h.CreateSubThread)
+	str.PATCH("/:subthread_id", middleware.JwtMiddleware(h.cfg), h.UpdateSubThread)
+	str.DELETE("/:subthread_id", middleware.JwtMiddleware(h.cfg), h.DeleteSubThread)
 	str.POST("/follow", middleware.JwtMiddleware(h.cfg), h.FollowSubThread)
 	str.PATCH("/unfollow", middleware.JwtMiddleware(h.cfg), h.UnfollowSubThread)
 }
@@ -103,6 +105,67 @@ func (h *SubThreadController) CreateSubThread(c *gin.Context) {
 
 	if err != nil {
 		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[CreateSubThread] Failed to create subthread", zap.Error(err))
+		httpresp.HttpRespError(c, err)
+		return
+	}
+
+	httpresp.HttpRespSuccess(c, nil, nil)
+	return
+}
+
+func (h *SubThreadController) UpdateSubThread(c *gin.Context) {
+	//_, endFunc := trace.Start(c.Copy().Request.Context(), "SubThreadController.UpdateSubThread", "controller")
+	//defer endFunc()
+
+	claims := middleware.ParseToken(c)
+	if len(claims.Token) == 0 {
+		httpresp.HttpRespError(c, oops.Code(response.Unauthorized.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusUnauthorized).Errorf(apperr.ErrUnauthorized))
+		return
+	}
+
+	var data request.UpdateSubThreadReq
+
+	if err := c.ShouldBindJSON(&data); err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[UpdateSubThread] Failed to bind json", zap.Error(err))
+		httpresp.HttpRespError(c, oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf(apperr.ErrBadRequest))
+		return
+	}
+
+	data.SubThreadID = c.Param("subthread_id")
+	data.UserEmail = claims.Email
+
+	err := h.subThreadSvc.UpdateSubThread(c.Request.Context(), data)
+
+	if err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[UpdateSubThread] Failed to update subthread", zap.Error(err))
+		httpresp.HttpRespError(c, err)
+		return
+	}
+
+	httpresp.HttpRespSuccess(c, nil, nil)
+	return
+}
+
+func (h *SubThreadController) DeleteSubThread(c *gin.Context) {
+	//_, endFunc := trace.Start(c.Copy().Request.Context(), "SubThreadController.DeleteSubThread", "controller")
+	//defer endFunc()
+
+	claims := middleware.ParseToken(c)
+	if len(claims.Token) == 0 {
+		httpresp.HttpRespError(c, oops.Code(response.Unauthorized.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusUnauthorized).Errorf(apperr.ErrUnauthorized))
+		return
+	}
+
+	var data request.DeleteSubThreadReq
+
+	data.SubThreadID = c.Param("subthread_id")
+	data.UserID = claims.ID
+	data.UserEmail = claims.Email
+	data.Username = claims.UserName
+
+	err := h.subThreadSvc.DeleteSubThread(c.Request.Context(), data)
+	if err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[DeleteSubThread] Failed to delete subthread by id", zap.Error(err))
 		httpresp.HttpRespError(c, err)
 		return
 	}

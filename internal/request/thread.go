@@ -70,3 +70,11 @@ type UpdateThreadReq struct {
 	Username  string `json:"-"`
 	UserEmail string `json:"-"`
 }
+
+type DeleteThreadReq struct {
+	ThreadID string `json:"thread_id"`
+
+	UserID    string `json:"-"`
+	Username  string `json:"-"`
+	UserEmail string `json:"-"`
+}

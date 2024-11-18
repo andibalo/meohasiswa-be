@@ -19,14 +19,17 @@ type AuthService interface {
 
 type SubThreadService interface {
 	GetSubThreadList(ctx context.Context, req request.GetSubThreadListReq) (response.GetSubThreadListResponse, error)
+	UpdateSubThread(ctx context.Context, req request.UpdateSubThreadReq) error
 	CreateSubThread(ctx context.Context, req request.CreateSubThreadReq) error
 	FollowSubThread(ctx context.Context, req request.FollowSubThreadReq) error
 	UnFollowSubThread(ctx context.Context, req request.UnFollowSubThreadReq) error
+	DeleteSubThread(ctx context.Context, req request.DeleteSubThreadReq) error
 }
 
 type ThreadService interface {
 	CreateThread(ctx context.Context, req request.CreateThreadReq) error
 	UpdateThread(ctx context.Context, req request.UpdateThreadReq) error
+	DeleteThread(ctx context.Context, req request.DeleteThreadReq) error
 	GetThreadList(ctx context.Context, req request.GetThreadListReq) (response.GetThreadListResponse, error)
 	GetThreadDetail(ctx context.Context, req request.GetThreadDetailReq) (response.GetThreadDetailResponse, error)
 	LikeThread(ctx context.Context, req request.LikeThreadReq) error

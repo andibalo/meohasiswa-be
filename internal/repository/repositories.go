@@ -32,11 +32,14 @@ type SubThreadRepository interface {
 	SaveSubThreadFollowerTx(subthreadFollower *model.SubThreadFollower, tx bun.Tx) error
 	DeleteSubThreadFollowerTx(subThreadFollower *model.SubThreadFollower, tx bun.Tx) error
 	UpdateSubThreadFollowerIsFollowingTx(id string, isFollowing bool, tx bun.Tx) error
+	DeleteByID(subThreadID string, updateValues map[string]interface{}) error
+	UpdateByID(subThreadID string, updateValues map[string]interface{}) error
 }
 
 type ThreadRepository interface {
 	Save(thread *model.Thread) error
 	UpdateByID(threadID string, updateValues map[string]interface{}) error
+	DeleteByID(threadID string, updateValues map[string]interface{}) error
 	GetList(req request.GetThreadListReq) ([]model.Thread, pkg.Pagination, error)
 	GetByID(id string) (model.Thread, error)
 	GetLastThreadActivityByUserID(threadId string, userId string) (*model.ThreadActivity, error)
