@@ -1,0 +1,871 @@
+{
+	"info": {
+		"_postman_id": "1ef3f9c0-b190-4e8f-824b-2dc92abbd842",
+		"name": "Meowhasiswa",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "7950997"
+	},
+	"item": [
+		{
+			"name": "Thread",
+			"item": [
+				{
+					"name": "Create Thread",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"subthread_id\": \"c1a2f145-d7cb-4c2a-80e4-937de53697c1\",\r\n    \"title\": \"My third love\",\r\n    \"content\": \"this is a description\",\r\n    \"content_summary\": \"this is a summary\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/thread",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"thread"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Thread List",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/thread?user_id=06f59770-6e6b-4687-9a97-64ba60ec1c68",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"thread"
+							],
+							"query": [
+								{
+									"key": "cursor",
+									"value": "2024-11-08T09:41:03.12703Z_625468c0-0034-4554-a51f-96f8f68aa44e",
+									"description": "createdAt_Id",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "2",
+									"disabled": true
+								},
+								{
+									"key": "user_id",
+									"value": "06f59770-6e6b-4687-9a97-64ba60ec1c68"
+								},
+								{
+									"key": "is_user_following",
+									"value": "true",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Dislike Thread",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/thread/dislike/:thread_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"thread",
+								"dislike",
+								":thread_id"
+							],
+							"variable": [
+								{
+									"key": "thread_id",
+									"value": "625468c0-0034-4554-a51f-96f8f68aa44e"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Like Thread",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/thread/like/:thread_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"thread",
+								"like",
+								":thread_id"
+							],
+							"variable": [
+								{
+									"key": "thread_id",
+									"value": "625468c0-0034-4554-a51f-96f8f68aa44e"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Thread",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"title\": \"Update title\",\r\n    \"content\": \"this is a description\",\r\n    \"content_summary\": \"this is a summary\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/thread/:thread_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"thread",
+								":thread_id"
+							],
+							"variable": [
+								{
+									"key": "thread_id",
+									"value": "b1887735-1d89-48bf-8289-a60454bd8154"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Comment Thread",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"content\": \"this is a comment\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/thread/comment/:thread_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"thread",
+								"comment",
+								":thread_id"
+							],
+							"variable": [
+								{
+									"key": "thread_id",
+									"value": "625468c0-0034-4554-a51f-96f8f68aa44e"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reply Comment",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"content\": \"this is a comment\",\r\n    \"thread_id\": \"625468c0-0034-4554-a51f-96f8f68aa44e\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/thread/comment/reply/:comment_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"thread",
+								"comment",
+								"reply",
+								":comment_id"
+							],
+							"variable": [
+								{
+									"key": "comment_id",
+									"value": "8dff604c-33a5-4c23-a953-f77fb81eafd6"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Thread",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/thread/:thread_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"thread",
+								":thread_id"
+							],
+							"variable": [
+								{
+									"key": "thread_id",
+									"value": "b1887735-1d89-48bf-8289-a60454bd8154"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Thread Detail",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/thread/:thread_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"thread",
+								":thread_id"
+							],
+							"variable": [
+								{
+									"key": "thread_id",
+									"value": "625468c0-0034-4554-a51f-96f8f68aa44e"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Subthread",
+			"item": [
+				{
+					"name": "Get SubThread List",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/subthread?is_following=true",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"subthread"
+							],
+							"query": [
+								{
+									"key": "cursor",
+									"value": "2024-11-08T05:58:34.586771Z_c1a2f145-d7cb-4c2a-80e4-937de53697c1",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "1",
+									"disabled": true
+								},
+								{
+									"key": "is_following",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create SubThread",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Test Create\",\r\n    \"description\": \"khusus untuk mahasiswa UMN\",\r\n    \"image_url\": \"test-image-url\",\r\n    \"label_color\": \"blue\",\r\n    \"is_university_subthread\": true,\r\n    \"university_id\": \"9a9e7fe0-37c9-40dc-bdb3-5a50adf35eaf\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/subthread",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"subthread"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Follow Subthread",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"subthread_id\": \"7a1311cd-a25e-4270-84e7-7d37774502cf\",\r\n    \"user_id\": \"f3cb8535-9977-4a1c-874a-2c0e1bed503d\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/subthread/follow",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"subthread",
+								"follow"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Unfollow Subthread",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"subthread_id\": \"c1a2f145-d7cb-4c2a-80e4-937de53697c1\",\r\n    \"user_id\": \"f3cb8535-9977-4a1c-874a-2c0e1bed503d\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/subthread/unfollow",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"subthread",
+								"unfollow"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update SubThread",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"test update\",\r\n    \"description\": \"khusus untuk mahasiswa UMN\",\r\n    \"image_url\": \"test-image-url\",\r\n    \"label_color\": \"blue\",\r\n    \"is_university_subthread\": false,\r\n    \"university_id\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/subthread/:subthread_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"subthread",
+								":subthread_id"
+							],
+							"variable": [
+								{
+									"key": "subthread_id",
+									"value": "f30215ed-3634-4b24-9224-08f3af741ed5"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Subthread",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/subthread/:subthread_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"subthread",
+								":subthread_id"
+							],
+							"variable": [
+								{
+									"key": "subthread_id",
+									"value": "f30215ed-3634-4b24-9224-08f3af741ed5"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "University",
+			"item": [
+				{
+					"name": "Rate University",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"title\": \"Great University Experience\",\r\n    \"content\": \"This university provides an excellent balance between academics and social life. The facilities are top-notch, and there are numerous student organizations to join.\",\r\n    \"facility_rating\": 5,\r\n    \"student_organization_rating\": 4,\r\n    \"university_major\": \"Informatika\",\r\n    \"social_environment_rating\": 5,\r\n    \"education_quality_rating\": 4,\r\n    \"price_to_value_rating\": 3,\r\n    \"pros\": [\r\n        \"Modern facilities\",\r\n        \"Active student organizations\",\r\n        \"Diverse social environment\"\r\n    ],\r\n    \"cons\": [\r\n        \"High tuition fees\",\r\n        \"Limited parking spaces\"\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/university/rate/:university_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"university",
+								"rate",
+								":university_id"
+							],
+							"variable": [
+								{
+									"key": "university_id",
+									"value": "9a9e7fe0-37c9-40dc-bdb3-5a50adf35eaf"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get University Rating List",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/university/ratings",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"university",
+								"ratings"
+							],
+							"query": [
+								{
+									"key": "cursor",
+									"value": null,
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Register User",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"test\",\r\n    \"email\": \"test@gmail.com\",\r\n    \"password\": \"test\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/v1/auth/register",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"auth",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"email\": \"andi.usman@student.umn.ac.id\",\r\n    \"password\": \"test\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/v1/auth/login",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get User Profile",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/v1/user/profile",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"user",
+						"profile"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Upload Image",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "image",
+							"type": "file",
+							"src": "/C:/Users/User/Pictures/chatbotflow.png"
+						},
+						{
+							"key": "file_name",
+							"value": "",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{base_url}}/api/v1/image/upload",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"image",
+						"upload"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
