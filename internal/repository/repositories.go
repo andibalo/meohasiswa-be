@@ -18,6 +18,8 @@ type UserRepository interface {
 	GetUserVerifyEmailByID(id string) (*model.UserVerifyEmail, error)
 	SetUserVerifyEmailToUsedTx(id string, tx bun.Tx) error
 	SetUserHasRateUniversityTx(id string, hru bool, tx bun.Tx) error
+	GetUserVerifyEmail(email string) (*model.UserVerifyEmail, error)
+	UpdateUserVerifyEmailByIDTx(id string, updateValues map[string]interface{}, tx bun.Tx) error
 }
 
 type SubThreadRepository interface {

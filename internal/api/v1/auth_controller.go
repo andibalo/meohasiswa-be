@@ -31,6 +31,7 @@ func (h *AuthController) AddRoutes(r *gin.Engine) {
 
 	ar.POST("/register", h.Register)
 	ar.POST("/login", h.Login)
+	ar.POST("/verify-email", h.VerifyEmail)
 }
 
 func (h *AuthController) Register(c *gin.Context) {
@@ -76,5 +77,28 @@ func (h *AuthController) Login(c *gin.Context) {
 	}
 
 	httpresp.HttpRespSuccess(c, token, nil)
+	return
+}
+
+func (h *AuthController) VerifyEmail(c *gin.Context) {
+	//_, endFunc := trace.Start(c.Copy().Request.Context(), "AuthController.VerifyEmail", "controller")
+	//defer endFunc()
+
+	var data request.VerifyEmailReq
+
+	if err := c.ShouldBindJSON(&data); err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[VerifyEmail] Failed to bind json", zap.Error(err))
+		httpresp.HttpRespError(c, oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf(apperr.ErrBadRequest))
+		return
+	}
+
+	err := h.authSvc.VerifyEmail(c.Request.Context(), data)
+	if err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[VerifyEmail] Failed to verify email", zap.Error(err))
+		httpresp.HttpRespError(c, err)
+		return
+	}
+
+	httpresp.HttpRespSuccess(c, nil, nil)
 	return
 }

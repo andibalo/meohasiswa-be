@@ -36,6 +36,37 @@ func (r *userRepository) Save(user *model.User) error {
 	return nil
 }
 
+func (r *userRepository) UpdateUserVerifyEmailByIDTx(id string, updateValues map[string]interface{}, tx bun.Tx) error {
+
+	_, err := tx.NewUpdate().
+		Model(&updateValues).
+		TableExpr("user_verify_email").
+		Where("id = ?", id).
+		Exec(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *userRepository) GetUserVerifyEmail(email string) (*model.UserVerifyEmail, error) {
+	userVerifyEmail := &model.UserVerifyEmail{}
+
+	err := r.db.NewSelect().
+		Model(userVerifyEmail).
+		Where("email = ?", email).
+		Order("created_at desc").
+		Limit(1).
+		Scan(context.Background())
+
+	if err != nil {
+		return nil, err
+	}
+
+	return userVerifyEmail, nil
+}
+
 func (r *userRepository) GetUserProfileByEmail(email string) (*model.User, error) {
 	user := &model.User{}
 

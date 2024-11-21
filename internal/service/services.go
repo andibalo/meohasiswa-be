@@ -15,6 +15,7 @@ type UserService interface {
 type AuthService interface {
 	Register(ctx context.Context, req request.RegisterUserReq) error
 	Login(ctx context.Context, req request.LoginUserReq) (token string, err error)
+	VerifyEmail(ctx context.Context, req request.VerifyEmailReq) (err error)
 }
 
 type SubThreadService interface {

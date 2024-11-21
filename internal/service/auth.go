@@ -170,3 +170,89 @@ func (s *authService) Login(ctx context.Context, req request.LoginUserReq) (toke
 
 	return token, nil
 }
+
+func (s *authService) VerifyEmail(ctx context.Context, req request.VerifyEmailReq) (err error) {
+	//ctx, endFunc := trace.Start(ctx, "AuthService.VerifyEmail", "service")
+	//defer endFunc()
+
+	existingUser, err := s.userRepo.GetByEmail(req.Email)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			s.cfg.Logger().ErrorWithContext(ctx, "[VerifyEmail] User not found", zap.Error(err))
+			return oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("User not found")
+		}
+
+		s.cfg.Logger().ErrorWithContext(ctx, "[VerifyEmail] Failed to get user by email", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+	}
+
+	if existingUser.IsEmailVerified {
+		s.cfg.Logger().ErrorWithContext(ctx, "[VerifyEmail] User is already verified", zap.Error(err))
+		return oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("User is already verified")
+	}
+
+	userVerifyEmail, err := s.userRepo.GetUserVerifyEmail(req.Email)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			s.cfg.Logger().ErrorWithContext(ctx, "[VerifyEmail] User verify email not found", zap.Error(err))
+			return oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("User verify email not found")
+		}
+
+		s.cfg.Logger().ErrorWithContext(ctx, "[VerifyEmail] Failed to get user verify email by email", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+	}
+
+	if userVerifyEmail.ExpiredAt.Before(time.Now()) {
+		s.cfg.Logger().ErrorWithContext(ctx, "[VerifyEmail] Code has expired", zap.Error(err))
+		return oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("Code has expired")
+	}
+
+	if userVerifyEmail.Code != req.Code {
+		s.cfg.Logger().ErrorWithContext(ctx, "[VerifyEmail] Code does not match", zap.Error(err))
+		return oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("Code does not match")
+	}
+
+	tx, err := s.db.Begin()
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[VerifyEmail] Failed to begin transaction", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+	}
+
+	updateValues := map[string]interface{}{
+		"is_used":    true,
+		"updated_by": req.Email,
+		"updated_at": time.Now(),
+	}
+
+	err = s.userRepo.UpdateUserVerifyEmailByIDTx(userVerifyEmail.ID, updateValues, tx)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[VerifyEmail] Failed to update user verify email", zap.Error(err))
+		tx.Rollback()
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update user verify email")
+	}
+
+	err = s.userRepo.SetUserVerifyEmailToUsedTx(userVerifyEmail.ID, tx)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[VerifyEmail] Failed to set user verify email to used", zap.Error(err))
+		tx.Rollback()
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to set user verify email to used")
+	}
+
+	err = s.userRepo.SetUserToEmailVerifiedTx(existingUser.ID, tx)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[VerifyEmail] Failed to set user to email verified", zap.Error(err))
+		tx.Rollback()
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to set user to email verified")
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[VerifyEmail] Failed to commit transaction", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+	}
+
+	return nil
+}
