@@ -2,7 +2,9 @@ package pkg
 
 import (
 	"golang.org/x/crypto/bcrypt"
+	"math"
 	"math/rand"
+	"strconv"
 	"strings"
 )
 
@@ -43,4 +45,16 @@ func NullStrToStr(s *string) string {
 	}
 
 	return ""
+}
+
+func GenRandNumber(n int) string {
+
+	minLimit := int(math.Pow10(n))
+	maxLimit := int(math.Pow10(n - 1))
+	randInt := int(rand.Float64() * float64(minLimit))
+	if randInt < maxLimit {
+		randInt += maxLimit
+	}
+
+	return strconv.Itoa(randInt)
 }

@@ -34,6 +34,8 @@ type Config interface {
 	GetFlags() Flag
 	GetAuthCfg() Auth
 	GetAWSCfg() AWS
+	GetBrevoSvcCfg() BrevoSvc
+	GetMailerCfg() Mailer
 }
 
 type AppConfig struct {
@@ -46,6 +48,8 @@ type AppConfig struct {
 	Flag     Flag
 	Auth     Auth
 	Aws      AWS
+	BrevoSvc BrevoSvc
+	Mailer   Mailer
 }
 
 type app struct {
@@ -86,7 +90,8 @@ type http struct {
 }
 
 type Flag struct {
-	EnableTracer bool
+	EnableTracer    bool
+	EnableSendEmail bool
 }
 
 type Auth struct {
@@ -104,6 +109,16 @@ type AWS struct {
 
 type S3 struct {
 	DefaultBucket string
+}
+
+type BrevoSvc struct {
+	APIKey                         string
+	SendVerificationCodeTemplateId int64
+}
+
+type Mailer struct {
+	DefaultSenderName  string
+	DefaultSenderEmail string
 }
 
 func InitConfig() *AppConfig {
@@ -176,7 +191,8 @@ func InitConfig() *AppConfig {
 			Token: viper.GetString("NOTIF_SVC_TOKEN"),
 		},
 		Flag: Flag{
-			EnableTracer: viper.GetBool("ENABLE_TRACER"),
+			EnableTracer:    viper.GetBool("ENABLE_TRACER"),
+			EnableSendEmail: viper.GetBool("ENABLE_SEND_EMAIL"),
 		},
 		Auth: Auth{
 			UserSecretCodeExpiryMins: viper.GetInt("USER_SECRET_CODE_EXPIRY_MINS"),
@@ -190,6 +206,14 @@ func InitConfig() *AppConfig {
 			S3: S3{
 				DefaultBucket: viper.GetString("AWS_S3_DEFAULT_BUCKET"),
 			},
+		},
+		BrevoSvc: BrevoSvc{
+			APIKey:                         viper.GetString("BREVO_SVC_API_KEY"),
+			SendVerificationCodeTemplateId: viper.GetInt64("BREVO_SVC_SEND_VERIFICATION_CODE_TEMPLATE_ID"),
+		},
+		Mailer: Mailer{
+			DefaultSenderName:  viper.GetString("DEFAULT_SENDER_NAME"),
+			DefaultSenderEmail: viper.GetString("DEFAULT_SENDER_EMAIL"),
 		},
 	}
 }
@@ -263,4 +287,12 @@ func (c *AppConfig) GetAuthCfg() Auth {
 
 func (c *AppConfig) GetAWSCfg() AWS {
 	return c.Aws
+}
+
+func (c *AppConfig) GetBrevoSvcCfg() BrevoSvc {
+	return c.BrevoSvc
+}
+
+func (c *AppConfig) GetMailerCfg() Mailer {
+	return c.Mailer
 }

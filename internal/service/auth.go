@@ -13,6 +13,7 @@ import (
 	"github.com/andibalo/meowhasiswa-be/pkg"
 	"github.com/andibalo/meowhasiswa-be/pkg/apperr"
 	"github.com/andibalo/meowhasiswa-be/pkg/httpresp"
+	"github.com/andibalo/meowhasiswa-be/pkg/mailer"
 	"github.com/google/uuid"
 	"github.com/samber/oops"
 	"github.com/uptrace/bun"
@@ -22,17 +23,19 @@ import (
 )
 
 type authService struct {
-	cfg      config.Config
-	userRepo repository.UserRepository
-	db       *bun.DB
+	cfg       config.Config
+	userRepo  repository.UserRepository
+	db        *bun.DB
+	mailerSvc mailer.MailService
 }
 
-func NewAuthService(cfg config.Config, userRepo repository.UserRepository, db *bun.DB) AuthService {
+func NewAuthService(cfg config.Config, userRepo repository.UserRepository, db *bun.DB, mailerSvc mailer.MailService) AuthService {
 
 	return &authService{
-		cfg:      cfg,
-		userRepo: userRepo,
-		db:       db,
+		cfg:       cfg,
+		userRepo:  userRepo,
+		db:        db,
+		mailerSvc: mailerSvc,
 	}
 }
 
@@ -74,7 +77,7 @@ func (s *authService) Register(ctx context.Context, req request.RegisterUserReq)
 	userVerifyEmail := &model.UserVerifyEmail{
 		ID:        uuid.NewString(),
 		UserID:    user.ID,
-		Code:      pkg.GenRandomString(10),
+		Code:      pkg.GenRandNumber(6),
 		Email:     user.Email,
 		IsUsed:    false,
 		ExpiredAt: time.Now().Add(time.Minute * time.Duration(s.cfg.GetAuthCfg().UserSecretCodeExpiryMins)),
@@ -95,19 +98,23 @@ func (s *authService) Register(ctx context.Context, req request.RegisterUserReq)
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
 	}
 
-	// SEND EMAIL
-	//verifyUrl := s.cfg.AppURL() + constants.UserVerifyEmailPath + fmt.Sprintf("?secret_code=%s&id=%s", userVerifyEmail.SecretCode, userVerifyEmail.ID)
-	//
-	//msg := pubsubCommons.CoreNewRegisteredUserPayload{
-	//	FirstName: data.FirstName,
-	//	LastName:  data.LastName,
-	//	Email:     data.Email,
-	//	VerifyURL: verifyUrl,
-	//}
-	//
-	//go func() {
-	//	s.pb.PublishNewUserRegistered(msg)
-	//}()
+	if s.cfg.GetFlags().EnableSendEmail {
+		err = s.mailerSvc.SendMail(ctx, mailer.Mail{
+			To: []string{
+				req.Email,
+			},
+			Name:       mailer.SEND_VERIFICATION_CODE_EMAIL,
+			Subject:    mailer.SEND_VERIFICATION_CODE_EMAIL_SUBJECT,
+			TemplateID: s.cfg.GetBrevoSvcCfg().SendVerificationCodeTemplateId,
+			Data: map[string]interface{}{
+				"code": pkg.GenRandNumber(6),
+			},
+		})
+
+		if err != nil {
+			s.cfg.Logger().ErrorWithContext(ctx, "[Register] Failed to send mail", zap.Error(err))
+		}
+	}
 
 	return nil
 }

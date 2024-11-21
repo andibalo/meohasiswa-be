@@ -10,9 +10,11 @@ import (
 	"github.com/andibalo/meowhasiswa-be/internal/service"
 	"github.com/andibalo/meowhasiswa-be/pkg/httpclient"
 	"github.com/andibalo/meowhasiswa-be/pkg/integration/notifsvc"
+	"github.com/andibalo/meowhasiswa-be/pkg/mailer"
 	s3Repository "github.com/andibalo/meowhasiswa-be/pkg/s3"
 	"github.com/andibalo/meowhasiswa-be/pkg/trace"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	brevo "github.com/getbrevo/brevo-go/lib"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/uptrace/bun"
@@ -48,10 +50,17 @@ func NewServer(cfg config.Config, tracer *trace.Tracer, db *bun.DB, s3Client *s3
 	userRepo := repository.NewUserRepository(db)
 	threadRepo := repository.NewThreadRepository(db)
 
+	brevoCfg := brevo.NewConfiguration()
+
+	brevoCfg.AddDefaultHeader("api-key", cfg.GetBrevoSvcCfg().APIKey)
+
+	brevoCl := brevo.NewAPIClient(brevoCfg)
+	brevoSvc := mailer.NewBrevoService(cfg, brevoCl)
+
 	notifSvc := notifsvc.NewNotificationService(cfg, hc)
 	imageSvc := service.NewImageService(cfg, s3Repo)
 	universitySvc := service.NewUniversityService(cfg, universityRepo, userRepo, db)
-	authSvc := service.NewAuthService(cfg, userRepo, db)
+	authSvc := service.NewAuthService(cfg, userRepo, db, brevoSvc)
 	userSvc := service.NewUserService(cfg, notifSvc, userRepo)
 	subThreadSvc := service.NewSubThreadService(cfg, subThreadRepo, db)
 	threadSvc := service.NewThreadService(cfg, threadRepo, db)
