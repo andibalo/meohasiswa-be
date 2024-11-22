@@ -14,6 +14,7 @@ type UniversityRatingListData struct {
 	UserID                    string    `json:"user_id"`
 	UserName                  string    `json:"username"`
 	UniversityID              string    `bun:"university_id" json:"university_id"`
+	UniversityName            string    `json:"university_name"`
 	UniversityAbbreviatedName string    `json:"university_abbreviated_name"`
 	UniversityImageURL        string    `json:"university_image_url"`
 	Title                     string    `json:"title"`

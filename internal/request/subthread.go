@@ -36,9 +36,11 @@ type UnFollowSubThreadReq struct {
 }
 
 type GetSubThreadListReq struct {
-	IsFollowing bool   `json:"is_following"`
-	Limit       int    `json:"limit"`
-	Cursor      string `json:"cursor"`
+	Search                     string `json:"_q"`
+	IsFollowing                bool   `json:"is_following"`
+	IncludeUniversitySubThread bool   `json:"include_university_subthread"`
+	Limit                      int    `json:"limit"`
+	Cursor                     string `json:"cursor"`
 
 	UserID    string `json:"-"`
 	UserEmail string `json:"-"`

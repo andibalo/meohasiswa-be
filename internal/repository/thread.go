@@ -7,6 +7,7 @@ import (
 	"github.com/andibalo/meowhasiswa-be/internal/request"
 	"github.com/andibalo/meowhasiswa-be/pkg"
 	"github.com/uptrace/bun"
+	"strings"
 	"time"
 )
 
@@ -220,6 +221,16 @@ func (r *threadRepository) GetList(req request.GetThreadListReq) ([]model.Thread
 
 	if req.UserIDParam != "" {
 		query.Where("th.user_id = ?", req.UserIDParam)
+	}
+
+	if req.Search != "" {
+		searchCols := []string{
+			"th.title",
+			"th.content",
+			"th.content_summary",
+		}
+
+		query.Where("CONCAT("+strings.Join(searchCols, ", ")+") ILIKE ?", "%"+req.Search+"%")
 	}
 
 	if req.Cursor != "" {

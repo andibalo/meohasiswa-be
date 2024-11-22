@@ -55,6 +55,8 @@ func (h *UniversityController) GetUniversityRatingList(c *gin.Context) {
 
 	data.Limit = limit
 	data.Cursor = c.Query("cursor")
+	data.Search = c.Query("_q")
+
 	data.UserID = claims.ID
 	data.UserEmail = claims.Email
 

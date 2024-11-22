@@ -201,6 +201,7 @@ func (s *universityService) mapUniversityRatingListData(uniRatings []model.Unive
 			UserID:                    ur.UserID,
 			UserName:                  ur.User.Username,
 			UniversityID:              ur.UniversityID,
+			UniversityName:            ur.University.Name,
 			UniversityAbbreviatedName: ur.University.AbbreviatedName,
 			UniversityImageURL:        ur.University.ImageURL,
 			UniversityMajor:           ur.UniversityMajor,

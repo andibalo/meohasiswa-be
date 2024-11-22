@@ -7,6 +7,7 @@ import (
 	"github.com/andibalo/meowhasiswa-be/internal/request"
 	"github.com/andibalo/meowhasiswa-be/pkg"
 	"github.com/uptrace/bun"
+	"strings"
 	"time"
 )
 
@@ -40,6 +41,20 @@ func (r *universityRepository) GetList(req request.GetUniversityRatingListReq) (
 		}).
 		Relation("UniversityRatingPoints").
 		Limit(req.Limit + 1)
+
+	if req.Search != "" {
+		query.Join("JOIN university AS uni ON uni.id = unir.university_id")
+
+		searchCols := []string{
+			"uni.name",
+			"uni.abbreviated_name",
+			"unir.title",
+			"unir.content",
+			"unir.university_major",
+		}
+
+		query.Where("CONCAT("+strings.Join(searchCols, ", ")+") ILIKE ?", "%"+req.Search+"%")
+	}
 
 	if req.Cursor != "" {
 		createdAt, id := pkg.GetCursorData(req.Cursor)

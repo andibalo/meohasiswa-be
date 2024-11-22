@@ -77,6 +77,7 @@ func (h *ThreadController) GetThreadList(c *gin.Context) {
 	data.IsUserFollowing = isUserFollowing
 	data.Cursor = c.Query("cursor")
 	data.UserIDParam = c.Query("user_id")
+	data.Search = c.Query("_q")
 
 	data.UserID = claims.ID
 	data.UserEmail = claims.Email

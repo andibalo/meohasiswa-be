@@ -7,6 +7,7 @@ import (
 	"github.com/andibalo/meowhasiswa-be/internal/request"
 	"github.com/andibalo/meowhasiswa-be/pkg"
 	"github.com/uptrace/bun"
+	"strings"
 	"time"
 )
 
@@ -32,13 +33,25 @@ func (r *subThreadRepository) GetList(req request.GetSubThreadListReq) ([]model.
 	query := r.db.NewSelect().
 		Column("st.*").
 		Model(&subThreads).
-		Where("st.is_university_subthread = FALSE").
 		Limit(req.Limit + 1)
+
+	if !req.IncludeUniversitySubThread {
+		query.Where("st.is_university_subthread = FALSE")
+	}
 
 	if req.IsFollowing {
 		query.Join("JOIN subthread_follower AS stf ON stf.subthread_id = st.id").
 			Where("stf.user_id = ?", req.UserID).
 			Where("stf.is_following = TRUE")
+	}
+
+	if req.Search != "" {
+		searchCols := []string{
+			"st.name",
+			"st.description",
+		}
+
+		query.Where("CONCAT("+strings.Join(searchCols, ", ")+") ILIKE ?", "%"+req.Search+"%")
 	}
 
 	if req.Cursor != "" {

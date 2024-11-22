@@ -11,6 +11,7 @@ type CreateThreadReq struct {
 }
 
 type GetThreadListReq struct {
+	Search          string `json:"_q"`
 	IsTrending      bool   `json:"is_trending"`
 	IsUserFollowing bool   `json:"is_user_following"`
 	UserIDParam     string `json:"user_id"`

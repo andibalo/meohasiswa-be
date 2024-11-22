@@ -63,9 +63,18 @@ func (h *SubThreadController) GetListSubThread(c *gin.Context) {
 		return
 	}
 
+	includeUniversitySubThread, err := pkg.GetBoolQueryParams(c, "include_university_subthread")
+	if err != nil {
+		httpresp.HttpRespError(c, err)
+		return
+	}
+
 	data.Limit = limit
 	data.IsFollowing = isFollowing
 	data.Cursor = c.Query("cursor")
+	data.Search = c.Query("_q")
+	data.IncludeUniversitySubThread = includeUniversitySubThread
+
 	data.UserID = claims.ID
 	data.UserEmail = claims.Email
 

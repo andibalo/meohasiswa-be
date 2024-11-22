@@ -18,6 +18,7 @@ type RateUniversityReq struct {
 }
 
 type GetUniversityRatingListReq struct {
+	Search string `json:"_q"`
 	Limit  int    `json:"limit"`
 	Cursor string `json:"cursor"`
 
