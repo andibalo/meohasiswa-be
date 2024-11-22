@@ -13,6 +13,6 @@ WORKDIR /
 COPY --from=builder /build /build
 COPY .env .env
 # Expose ports
-EXPOSE 8081
+EXPOSE 8082
 # Run Go program, just like locally
 ENTRYPOINT ["/build"]

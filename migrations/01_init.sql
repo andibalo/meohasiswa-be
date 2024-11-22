@@ -1,8 +1,3 @@
-DROP DATABASE IF EXISTS "core-db-local";
-CREATE DATABASE "core-db-local";
-
-\c "core-db-local";
-
 CREATE TABLE university (
     id UUID PRIMARY KEY NOT NULL,
     name VARCHAR(255) NOT NULL,

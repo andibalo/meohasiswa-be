@@ -1,17 +1,20 @@
 version: '3.8'
 
 services:
-#  postgres:
-#    container_name: postgres
-#    image: postgres:latest
-#    environment:
-#      POSTGRES_USER: postgres
-#      POSTGRES_PASSWORD: postgres
-#      PGDATA: /data/postgres
-#    volumes:
-#      - postgres-db:/data/postgres
-#    ports:
-#      - "5432:5432"
+  postgres_db:
+    container_name: postgres
+    image: postgres:16.3-alpine3.20
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: core_db
+    volumes:
+      - postgres-db:/var/lib/postgresql/data
+      - ../migrations:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - meohasiswa-be
 
   loki:
     container_name: loki
@@ -84,10 +87,15 @@ services:
       mode: replicated
       replicas: 1
     ports:
-      - "8081:8081"
+      - "8082:8082"
+    depends_on:
+      - postgres_db
     networks:
       - meohasiswa-be
 
+volumes:
+  postgres-db:
+    driver: local
 
 networks:
   meohasiswa-be:
