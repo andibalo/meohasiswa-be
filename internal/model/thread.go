@@ -20,6 +20,7 @@ type Thread struct {
 	LikeCount      int64            `bun:"like_count" json:"like_count"`
 	DislikeCount   int64            `bun:"dislike_count" json:"dislike_count"`
 	CommentCount   int64            `bun:"comment_count" json:"comment_count"`
+	TrendingScore  float64          `bun:"trending_score,scanonly"`
 	Comments       []*ThreadComment `bun:"rel:has-many,join:id=thread_id"`
 	CreatedBy      string           `bun:"created_by" json:"created_by"`
 	CreatedAt      time.Time        `bun:",nullzero,default:now()" json:"created_at"`

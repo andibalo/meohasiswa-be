@@ -20,7 +20,6 @@ func InitDB(cfg config.Config) *bun.DB {
 	if cfg.AppEnv() == "DEV" {
 		pgdb.AddQueryHook(bundebug.NewQueryHook(
 			bundebug.WithVerbose(true),
-			bundebug.FromEnv("BUNDEBUG"),
 		))
 	}
 

@@ -181,14 +181,20 @@ func (r *threadRepository) GetByID(id string) (model.Thread, error) {
 
 func (r *threadRepository) GetList(req request.GetThreadListReq) ([]model.Thread, pkg.Pagination, error) {
 
-	//TODO: add trending filter
-
 	var (
 		threads    []model.Thread
 		nextCursor string
 	)
 
 	pagination := pkg.Pagination{}
+
+	trendingScoreSubQuery := r.db.NewSelect().TableExpr("thread").
+		ColumnExpr(`id,
+							ROUND((
+									(like_count * 1.5) +
+									(dislike_count * 1.2) +
+									(comment_count * 2)
+								) * EXP(EXTRACT(EPOCH FROM (NOW() - created_at)) / -172800.0), 2) AS trending_score`)
 
 	query := r.db.NewSelect().
 		Column("th.*").
@@ -202,6 +208,11 @@ func (r *threadRepository) GetList(req request.GetThreadListReq) ([]model.Thread
 		}).
 		Limit(req.Limit + 1)
 
+	if req.IsTrending {
+		query.Column("ts.trending_score")
+		query.Join("LEFT JOIN (?) AS ts ON (ts.id = th.id)", trendingScoreSubQuery)
+	}
+
 	if req.IsUserFollowing {
 		query.Join("JOIN subthread_follower AS stf ON stf.subthread_id = th.subthread_id AND stf.user_id = ?", req.UserID)
 		query.Where("stf.is_following = TRUE")
@@ -212,13 +223,26 @@ func (r *threadRepository) GetList(req request.GetThreadListReq) ([]model.Thread
 	}
 
 	if req.Cursor != "" {
-		createdAt, id := pkg.GetCursorData(req.Cursor)
-		query.Where("(th.created_at, th.id) <= (?, ?)", createdAt, id)
+		if req.IsTrending {
+			trendingScore, _ := pkg.GetCursorData(req.Cursor)
 
-		query.Order("th.created_at desc", "th.id desc")
+			query.Where("ts.trending_score <= ?", trendingScore)
+			query.Order("ts.trending_score desc")
 
+		} else {
+
+			createdAt, id := pkg.GetCursorData(req.Cursor)
+
+			query.Where("(th.created_at, th.id) <= (?, ?)", createdAt, id)
+
+			query.Order("th.created_at desc", "th.id desc")
+		}
 	} else {
-		query.Order("th.created_at desc")
+		if req.IsTrending {
+			query.Order("ts.trending_score desc")
+		} else {
+			query.Order("th.created_at desc")
+		}
 	}
 
 	err := query.Scan(context.Background())
@@ -228,7 +252,13 @@ func (r *threadRepository) GetList(req request.GetThreadListReq) ([]model.Thread
 
 	if len(threads) > req.Limit {
 		lastThread := threads[len(threads)-1]
-		nextCursor = fmt.Sprintf("%s_%s", lastThread.CreatedAt.Format(time.RFC3339Nano), lastThread.ID)
+
+		if req.IsTrending {
+			nextCursor = fmt.Sprintf("%.2f_%s", lastThread.TrendingScore, lastThread.ID)
+		} else {
+			nextCursor = fmt.Sprintf("%s_%s", lastThread.CreatedAt.Format(time.RFC3339Nano), lastThread.ID)
+		}
+
 		threads = threads[:req.Limit] // Trim to the requested limit
 	}
 
