@@ -39,6 +39,7 @@ type GetSubThreadListReq struct {
 	Search                     string `json:"_q"`
 	IsFollowing                bool   `json:"is_following"`
 	IncludeUniversitySubThread bool   `json:"include_university_subthread"`
+	ShouldExcludeFollowing     bool   `json:"should_exclude_following"`
 	Limit                      int    `json:"limit"`
 	Cursor                     string `json:"cursor"`
 

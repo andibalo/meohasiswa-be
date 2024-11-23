@@ -69,11 +69,18 @@ func (h *SubThreadController) GetListSubThread(c *gin.Context) {
 		return
 	}
 
+	shouldExcludeFollowing, err := pkg.GetBoolQueryParams(c, "should_exclude_following")
+	if err != nil {
+		httpresp.HttpRespError(c, err)
+		return
+	}
+
 	data.Limit = limit
 	data.IsFollowing = isFollowing
 	data.Cursor = c.Query("cursor")
 	data.Search = c.Query("_q")
 	data.IncludeUniversitySubThread = includeUniversitySubThread
+	data.ShouldExcludeFollowing = shouldExcludeFollowing
 
 	data.UserID = claims.ID
 	data.UserEmail = claims.Email

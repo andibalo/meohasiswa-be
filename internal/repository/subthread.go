@@ -45,6 +45,11 @@ func (r *subThreadRepository) GetList(req request.GetSubThreadListReq) ([]model.
 			Where("stf.is_following = TRUE")
 	}
 
+	if req.ShouldExcludeFollowing {
+		query.Join("LEFT JOIN subthread_follower AS stf ON stf.subthread_id = st.id AND stf.user_id = ?", req.UserID).
+			Where("stf.user_id IS NULL")
+	}
+
 	if req.Search != "" {
 		searchCols := []string{
 			"st.name",
