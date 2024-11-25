@@ -2,11 +2,21 @@ package service
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"github.com/andibalo/meowhasiswa-be/internal/config"
 	"github.com/andibalo/meowhasiswa-be/internal/model"
 	"github.com/andibalo/meowhasiswa-be/internal/repository"
 	"github.com/andibalo/meowhasiswa-be/internal/request"
+	"github.com/andibalo/meowhasiswa-be/internal/response"
+	"github.com/andibalo/meowhasiswa-be/pkg"
+	"github.com/andibalo/meowhasiswa-be/pkg/apperr"
+	"github.com/andibalo/meowhasiswa-be/pkg/httpresp"
 	"github.com/andibalo/meowhasiswa-be/pkg/integration/notifsvc"
+	"github.com/google/uuid"
+	"github.com/samber/oops"
+	"go.uber.org/zap"
+	"net/http"
 )
 
 type userService struct {
@@ -35,6 +45,52 @@ func (s *userService) GetUserProfile(ctx context.Context, req request.GetUserPro
 	}
 
 	return user, nil
+}
+
+func (s *userService) CreateUserDevice(ctx context.Context, req request.CreateUserDeviceReq) error {
+	//ctx, endFunc := trace.Start(ctx, "UserService.CreateUserDevice", "service")
+	//defer endFunc()
+
+	_, err := s.userRepo.GetByID(req.UserID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			s.cfg.Logger().ErrorWithContext(ctx, "[CreateUserDevice] User not found", zap.Error(err))
+			return oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("User not found")
+		}
+
+		s.cfg.Logger().ErrorWithContext(ctx, "[CreateUserDevice] Failed to get user by id", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+	}
+
+	ud := &model.UserDevice{
+		ID:                   uuid.NewString(),
+		UserID:               req.UserID,
+		NotificationToken:    req.NotificationToken,
+		IsNotificationActive: true,
+		CreatedBy:            req.UserEmail,
+	}
+
+	if req.Brand != "" {
+		ud.Brand = pkg.ToPointer(req.Brand)
+	}
+
+	if req.Type != "" {
+		ud.Type = pkg.ToPointer(req.Type)
+	}
+
+	if req.Model != "" {
+		ud.Model = pkg.ToPointer(req.Model)
+	}
+
+	err = s.userRepo.SaveUserDevice(ud)
+
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[CreateUserDevice] Failed to create user device", zap.Error(err))
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to create user device")
+	}
+
+	return nil
 }
 
 func (s *userService) TestCallNotifService(ctx context.Context, req request.TestCallNotifServiceReq) error {

@@ -36,6 +36,16 @@ func (r *userRepository) Save(user *model.User) error {
 	return nil
 }
 
+func (r *userRepository) SaveUserDevice(userDevice *model.UserDevice) error {
+
+	_, err := r.db.NewInsert().Model(userDevice).Exec(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *userRepository) UpdateUserVerifyEmailByIDTx(id string, updateValues map[string]interface{}, tx bun.Tx) error {
 
 	_, err := tx.NewUpdate().
@@ -89,6 +99,20 @@ func (r *userRepository) GetByEmail(email string) (*model.User, error) {
 	err := r.db.NewSelect().
 		Model(user).
 		Where("email = ?", email).
+		Scan(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func (r *userRepository) GetByID(id string) (*model.User, error) {
+	user := &model.User{}
+
+	err := r.db.NewSelect().
+		Model(user).
+		Where("id = ?", id).
 		Scan(context.Background())
 	if err != nil {
 		return nil, err

@@ -47,16 +47,17 @@ type UserVerifyEmail struct {
 type UserDevice struct {
 	bun.BaseModel `bun:"table:user_device,alias:ud"`
 
-	ID                   string
-	DeviceType           string
-	DeviceID             string
-	UserID               string
-	NotificationToken    string
-	IsNotificationActive bool
-	CreatedBy            string
-	CreatedAt            time.Time `bun:",nullzero,default:now()"`
-	UpdatedBy            *string
-	UpdatedAt            bun.NullTime
-	DeletedBy            *string
-	DeletedAt            time.Time `bun:",nullzero,soft_delete"`
+	ID                   string       `bun:",pk" json:"id"`
+	UserID               string       `bun:"user_id" json:"user_id"`
+	Brand                *string      `bun:"brand" json:"brand"`
+	Type                 *string      `bun:"type" json:"type"`
+	Model                *string      `bun:"model" json:"model"`
+	NotificationToken    string       `bun:"notification_token" json:"notification_token"`
+	IsNotificationActive bool         `bun:"is_notification_active" json:"is_notification_active"`
+	CreatedBy            string       `bun:"created_by" json:"created_by"`
+	CreatedAt            time.Time    `bun:",nullzero,default:now()" json:"created_at"`
+	UpdatedBy            *string      `bun:"updated_by" json:"updated_by"`
+	UpdatedAt            bun.NullTime `bun:"updated_at" json:"updated_at"`
+	DeletedBy            *string      `bun:"deleted_by" json:"-"`
+	DeletedAt            time.Time    `bun:",nullzero,soft_delete" json:"-"`
 }

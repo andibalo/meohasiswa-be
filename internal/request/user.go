@@ -12,3 +12,14 @@ type GetUserProfileReq struct {
 	UserID    string `json:"-"`
 	UserEmail string `json:"-"`
 }
+
+type CreateUserDeviceReq struct {
+	Brand                string `json:"brand"`
+	Type                 string `json:"type"`
+	Model                string `json:"model"`
+	NotificationToken    string `json:"notification_token" binding:"required"`
+	IsNotificationActive bool   `json:"is_notification_active"`
+
+	UserID    string `json:"-"`
+	UserEmail string `json:"-"`
+}

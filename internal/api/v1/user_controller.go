@@ -31,8 +31,8 @@ func (h *UserController) AddRoutes(r *gin.Engine) {
 	ur := r.Group("/api/v1/user")
 
 	ur.GET("/profile", middleware.JwtMiddleware(h.cfg), h.GetUserProfile)
+	ur.POST("/device/:user_id", middleware.JwtMiddleware(h.cfg), h.CreateUserDevice)
 	ur.GET("/test", h.TestLog)
-
 }
 
 func (h *UserController) GetUserProfile(c *gin.Context) {
@@ -57,6 +57,37 @@ func (h *UserController) GetUserProfile(c *gin.Context) {
 	}
 
 	httpresp.HttpRespSuccess(c, user, nil)
+	return
+}
+
+func (h *UserController) CreateUserDevice(c *gin.Context) {
+	//_, endFunc := trace.Start(c.Copy().Request.Context(), "UserController.CreateUserDevice", "controller")
+	//defer endFunc()
+
+	claims := middleware.ParseToken(c)
+	if len(claims.Token) == 0 {
+		httpresp.HttpRespError(c, oops.Code(response.Unauthorized.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusUnauthorized).Errorf(apperr.ErrUnauthorized))
+		return
+	}
+
+	var data request.CreateUserDeviceReq
+	if err := c.ShouldBindJSON(&data); err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[CreateUserDevice] Failed to bind json", zap.Error(err))
+		httpresp.HttpRespError(c, oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf(apperr.ErrBadRequest))
+		return
+	}
+
+	data.UserID = c.Param("user_id")
+	data.UserEmail = claims.Email
+
+	err := h.userSvc.CreateUserDevice(c.Request.Context(), data)
+	if err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[CreateUserDevice] Failed to create user device data", zap.Error(err))
+		httpresp.HttpRespError(c, err)
+		return
+	}
+
+	httpresp.HttpRespSuccess(c, nil, nil)
 	return
 }
 

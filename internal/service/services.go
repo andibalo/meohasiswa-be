@@ -10,6 +10,7 @@ import (
 type UserService interface {
 	TestCallNotifService(ctx context.Context, req request.TestCallNotifServiceReq) error
 	GetUserProfile(ctx context.Context, req request.GetUserProfileReq) (*model.User, error)
+	CreateUserDevice(ctx context.Context, req request.CreateUserDeviceReq) error
 }
 
 type AuthService interface {

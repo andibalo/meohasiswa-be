@@ -84,11 +84,12 @@ CREATE TABLE user_verify_email (
 
 CREATE TABLE user_device (
     id UUID PRIMARY KEY NOT NULL,
-    device_type VARCHAR(100) NOT NULL,
-    device_id VARCHAR(255) NOT NULL,
     user_id UUID NOT NULL REFERENCES "user"(id),
+    brand VARCHAR(100),
+    type VARCHAR(255),
+    model VARCHAR(255),
     notification_token VARCHAR(255) NOT NULL,
-    is_notification_active BOOLEAN NOT NULL,
+    is_notification_active BOOLEAN NOT NULL DEFAULT true,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     created_by VARCHAR(100) NOT NULL,
     updated_at TIMESTAMPTZ,
