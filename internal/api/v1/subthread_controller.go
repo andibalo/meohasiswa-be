@@ -33,6 +33,7 @@ func (h *SubThreadController) AddRoutes(r *gin.Engine) {
 
 	str.GET("", middleware.JwtMiddleware(h.cfg), h.GetListSubThread)
 	str.POST("", middleware.JwtMiddleware(h.cfg), h.CreateSubThread)
+	str.GET("/:subthread_id", middleware.JwtMiddleware(h.cfg), h.GetSubThreadByID)
 	str.PATCH("/:subthread_id", middleware.JwtMiddleware(h.cfg), h.UpdateSubThread)
 	str.DELETE("/:subthread_id", middleware.JwtMiddleware(h.cfg), h.DeleteSubThread)
 	str.POST("/follow", middleware.JwtMiddleware(h.cfg), h.FollowSubThread)
@@ -126,6 +127,33 @@ func (h *SubThreadController) CreateSubThread(c *gin.Context) {
 	}
 
 	httpresp.HttpRespSuccess(c, nil, nil)
+	return
+}
+
+func (h *SubThreadController) GetSubThreadByID(c *gin.Context) {
+	//_, endFunc := trace.Start(c.Copy().Request.Context(), "SubThreadController.GetSubThreadByID", "controller")
+	//defer endFunc()
+
+	claims := middleware.ParseToken(c)
+	if len(claims.Token) == 0 {
+		httpresp.HttpRespError(c, oops.Code(response.Unauthorized.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusUnauthorized).Errorf(apperr.ErrUnauthorized))
+		return
+	}
+
+	var data request.GetSubThreadByIDReq
+
+	data.SubThreadID = c.Param("subthread_id")
+	data.UserEmail = claims.Email
+
+	resp, err := h.subThreadSvc.GetSubThreadByID(c.Request.Context(), data)
+
+	if err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[GetSubThreadByID] Failed to get subthread by id", zap.Error(err))
+		httpresp.HttpRespError(c, err)
+		return
+	}
+
+	httpresp.HttpRespSuccess(c, resp, nil)
 	return
 }
 

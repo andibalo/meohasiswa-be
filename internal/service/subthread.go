@@ -58,6 +58,28 @@ func (s *subThreadService) GetSubThreadList(ctx context.Context, req request.Get
 	return resp, nil
 }
 
+func (s *subThreadService) GetSubThreadByID(ctx context.Context, req request.GetSubThreadByIDReq) (response.GetSubThreadByIDResponse, error) {
+	//ctx, endFunc := trace.Start(ctx, "SubThreadService.GetSubThreadByID", "service")
+	//defer endFunc()
+
+	var resp response.GetSubThreadByIDResponse
+
+	subthread, err := s.subThreadRepo.GetByID(req.SubThreadID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			s.cfg.Logger().ErrorWithContext(ctx, "[UpdateSubThread] SubThread not found", zap.Error(err))
+			return resp, oops.Code(response.NotFound.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusNotFound).Errorf("SubThread not found")
+		}
+
+		s.cfg.Logger().ErrorWithContext(ctx, "[UpdateSubThread] Failed to get subthread by id", zap.Error(err))
+		return resp, oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update subthread by id")
+	}
+
+	resp.Data = subthread
+
+	return resp, nil
+}
+
 func (s *subThreadService) CreateSubThread(ctx context.Context, req request.CreateSubThreadReq) error {
 	//ctx, endFunc := trace.Start(ctx, "SubThreadService.CreateSubThread", "service")
 	//defer endFunc()

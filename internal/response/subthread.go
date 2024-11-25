@@ -6,3 +6,7 @@ type GetSubThreadListResponse struct {
 	Data []model.SubThread `json:"subthreads"`
 	Meta PaginationMeta    `json:"meta"`
 }
+
+type GetSubThreadByIDResponse struct {
+	Data *model.SubThread `json:"subthread"`
+}

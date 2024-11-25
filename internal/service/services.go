@@ -20,6 +20,7 @@ type AuthService interface {
 
 type SubThreadService interface {
 	GetSubThreadList(ctx context.Context, req request.GetSubThreadListReq) (response.GetSubThreadListResponse, error)
+	GetSubThreadByID(ctx context.Context, req request.GetSubThreadByIDReq) (response.GetSubThreadByIDResponse, error)
 	UpdateSubThread(ctx context.Context, req request.UpdateSubThreadReq) error
 	CreateSubThread(ctx context.Context, req request.CreateSubThreadReq) error
 	FollowSubThread(ctx context.Context, req request.FollowSubThreadReq) error

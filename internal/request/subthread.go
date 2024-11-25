@@ -47,6 +47,11 @@ type GetSubThreadListReq struct {
 	UserEmail string `json:"-"`
 }
 
+type GetSubThreadByIDReq struct {
+	SubThreadID string `json:"subthread_id"`
+	UserEmail   string `json:"-"`
+}
+
 type DeleteSubThreadReq struct {
 	SubThreadID string `json:"subthread_id"`
 
