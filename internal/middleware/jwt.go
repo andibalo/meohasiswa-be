@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/samber/oops"
+	"go.uber.org/zap"
 	"net/http"
 	"strings"
 )
@@ -62,6 +63,7 @@ func JwtMiddleware(cfg config.Config) gin.HandlerFunc {
 		})
 		// check parse token error
 		if err != nil {
+			cfg.Logger().ErrorWithContext(ctx, "[JWTMiddleware] User unauthorized", zap.Error(err))
 			httpresp.HttpRespError(ctx, oops.Code(response.Unauthorized.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusUnauthorized).Errorf(err.Error()))
 			return
 		}
@@ -72,6 +74,7 @@ func JwtMiddleware(cfg config.Config) gin.HandlerFunc {
 			ctx.Set(ContextClaimKey, claims)
 			ctx.Next()
 		} else {
+			cfg.Logger().ErrorWithContext(ctx, "[JWTMiddleware] User unauthorized", zap.Error(err))
 			httpresp.HttpRespError(ctx, oops.Code(response.Unauthorized.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusUnauthorized).Errorf(err.Error()))
 			return
 		}
