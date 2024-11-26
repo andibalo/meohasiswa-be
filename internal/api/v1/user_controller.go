@@ -31,7 +31,7 @@ func (h *UserController) AddRoutes(r *gin.Engine) {
 	ur := r.Group("/api/v1/user")
 
 	ur.GET("/profile", middleware.JwtMiddleware(h.cfg), h.GetUserProfile)
-	ur.GET("/device/:user_id", middleware.JwtMiddleware(h.cfg), h.GetUserDevices)
+	ur.GET("/device", middleware.JwtMiddleware(h.cfg), h.GetUserDevices)
 	ur.POST("/device/:user_id", middleware.JwtMiddleware(h.cfg), h.CreateUserDevice)
 	ur.GET("/test", h.TestLog)
 }
@@ -104,8 +104,8 @@ func (h *UserController) GetUserDevices(c *gin.Context) {
 
 	var data request.GetUserDevicesReq
 
-	data.Token = c.Query("token")
-	data.UserID = c.Param("user_id")
+	data.NotificationToken = c.Query("notification_token")
+	data.UserID = c.Query("user_id")
 	data.UserEmail = claims.Email
 
 	userDevices, err := h.userSvc.GetUserDevices(c.Request.Context(), data)

@@ -127,11 +127,14 @@ func (r *userRepository) GetUserDevices(req request.GetUserDevicesReq) ([]model.
 	var userDevices []model.UserDevice
 
 	query := r.db.NewSelect().
-		Model(&userDevices).
-		Where("user_id = ?", req.UserID)
+		Model(&userDevices)
 
-	if req.Token != "" {
-		query.Where("notification_token = ?", req.Token)
+	if req.UserID != "" {
+		query.Where("user_id = ?", req.UserID)
+	}
+
+	if req.NotificationToken != "" {
+		query.Where("notification_token = ?", req.NotificationToken)
 	}
 
 	err := query.Scan(context.Background())

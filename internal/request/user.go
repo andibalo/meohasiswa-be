@@ -25,7 +25,7 @@ type CreateUserDeviceReq struct {
 }
 
 type GetUserDevicesReq struct {
-	Token string `json:"token"`
+	NotificationToken string `json:"notification_token"`
 
 	UserID    string `json:"-"`
 	UserEmail string `json:"-"`
