@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"github.com/andibalo/meowhasiswa-be/internal/model"
+	"github.com/andibalo/meowhasiswa-be/internal/request"
 	"github.com/uptrace/bun"
 )
 
@@ -119,6 +120,26 @@ func (r *userRepository) GetByID(id string) (*model.User, error) {
 	}
 
 	return user, nil
+}
+
+func (r *userRepository) GetUserDevices(req request.GetUserDevicesReq) ([]model.UserDevice, error) {
+
+	var userDevices []model.UserDevice
+
+	query := r.db.NewSelect().
+		Model(&userDevices).
+		Where("user_id = ?", req.UserID)
+
+	if req.Token != "" {
+		query.Where("notification_token = ?", req.Token)
+	}
+
+	err := query.Scan(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	return userDevices, nil
 }
 
 func (r *userRepository) SaveUserVerifyEmailTx(userVerifyEmail *model.UserVerifyEmail, tx bun.Tx) error {

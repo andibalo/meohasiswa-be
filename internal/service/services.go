@@ -11,6 +11,7 @@ type UserService interface {
 	TestCallNotifService(ctx context.Context, req request.TestCallNotifServiceReq) error
 	GetUserProfile(ctx context.Context, req request.GetUserProfileReq) (*model.User, error)
 	CreateUserDevice(ctx context.Context, req request.CreateUserDeviceReq) error
+	GetUserDevices(ctx context.Context, req request.GetUserDevicesReq) ([]model.UserDevice, error)
 }
 
 type AuthService interface {

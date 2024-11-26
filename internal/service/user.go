@@ -41,10 +41,34 @@ func (s *userService) GetUserProfile(ctx context.Context, req request.GetUserPro
 	user, err := s.userRepo.GetUserProfileByEmail(req.UserEmail)
 
 	if err != nil {
-		return user, err
+		if errors.Is(err, sql.ErrNoRows) {
+			s.cfg.Logger().ErrorWithContext(ctx, "[GetUserProfile] User profile not found", zap.Error(err))
+			return nil, oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("User profile not found")
+		}
+
+		s.cfg.Logger().ErrorWithContext(ctx, "[GetUserProfile] Failed to get user profile", zap.Error(err))
+		return nil, oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to get user profile")
 	}
 
 	return user, nil
+}
+
+func (s *userService) GetUserDevices(ctx context.Context, req request.GetUserDevicesReq) ([]model.UserDevice, error) {
+	//ctx, endFunc := trace.Start(ctx, "UserService.GetUserDevices", "service")
+	//defer endFunc()
+
+	userDevices, err := s.userRepo.GetUserDevices(req)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			s.cfg.Logger().ErrorWithContext(ctx, "[GetUserDevices] User devices not found", zap.Error(err))
+			return nil, oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("User devices not found")
+		}
+
+		s.cfg.Logger().ErrorWithContext(ctx, "[GetUserDevices] Failed to get user devices", zap.Error(err))
+		return nil, oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to get user devices")
+	}
+
+	return userDevices, nil
 }
 
 func (s *userService) CreateUserDevice(ctx context.Context, req request.CreateUserDeviceReq) error {

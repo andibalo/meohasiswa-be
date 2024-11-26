@@ -23,3 +23,10 @@ type CreateUserDeviceReq struct {
 	UserID    string `json:"-"`
 	UserEmail string `json:"-"`
 }
+
+type GetUserDevicesReq struct {
+	Token string `json:"token"`
+
+	UserID    string `json:"-"`
+	UserEmail string `json:"-"`
+}

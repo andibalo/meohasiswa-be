@@ -14,6 +14,7 @@ type UserRepository interface {
 	SaveUserDevice(userDevice *model.UserDevice) error
 	GetUserProfileByEmail(email string) (*model.User, error)
 	GetByID(id string) (*model.User, error)
+	GetUserDevices(req request.GetUserDevicesReq) ([]model.UserDevice, error)
 	GetByEmail(email string) (*model.User, error)
 	SaveUserVerifyEmailTx(userVerifyEmail *model.UserVerifyEmail, tx bun.Tx) error
 	SetUserToEmailVerifiedTx(id string, tx bun.Tx) error
