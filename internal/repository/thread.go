@@ -224,6 +224,11 @@ func (r *threadRepository) GetList(req request.GetThreadListReq) ([]model.Thread
 		}).
 		Limit(req.Limit + 1)
 
+	if req.IncludeUserActivity {
+		query.ColumnExpr("ta.action as thread_action")
+		query.Join("LEFT JOIN thread_activity AS ta ON ta.thread_id = th.id AND ta.actor_id = ?", req.UserID)
+	}
+
 	if req.IsTrending {
 		query.Column("ts.trending_score")
 		query.Join("LEFT JOIN (?) AS ts ON (ts.id = th.id)", trendingScoreSubQuery)

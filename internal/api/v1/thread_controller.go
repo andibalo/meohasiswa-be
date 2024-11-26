@@ -72,12 +72,19 @@ func (h *ThreadController) GetThreadList(c *gin.Context) {
 		return
 	}
 
+	includeUserActivity, err := pkg.GetBoolQueryParams(c, "include_user_activity")
+	if err != nil {
+		httpresp.HttpRespError(c, err)
+		return
+	}
+
 	data.Limit = limit
 	data.IsTrending = isTrending
 	data.IsUserFollowing = isUserFollowing
 	data.Cursor = c.Query("cursor")
 	data.UserIDParam = c.Query("user_id")
 	data.Search = c.Query("_q")
+	data.IncludeUserActivity = includeUserActivity
 
 	data.UserID = claims.ID
 	data.UserEmail = claims.Email

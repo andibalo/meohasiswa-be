@@ -21,6 +21,8 @@ type ThreadListData struct {
 	LikeCount                 int64        `json:"like_count"`
 	DislikeCount              int64        `json:"dislike_count"`
 	CommentCount              int64        `json:"comment_count"`
+	IsLiked                   bool         `json:"is_liked"`
+	IsDisliked                bool         `json:"is_disliked"`
 	CreatedBy                 string       `json:"created_by"`
 	CreatedAt                 time.Time    `json:"created_at"`
 	UpdatedBy                 *string      `json:"updated_by"`

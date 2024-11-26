@@ -11,12 +11,13 @@ type CreateThreadReq struct {
 }
 
 type GetThreadListReq struct {
-	Search          string `json:"_q"`
-	IsTrending      bool   `json:"is_trending"`
-	IsUserFollowing bool   `json:"is_user_following"`
-	UserIDParam     string `json:"user_id"`
-	Limit           int    `json:"limit"`
-	Cursor          string `json:"cursor"`
+	Search              string `json:"_q"`
+	IsTrending          bool   `json:"is_trending"`
+	IsUserFollowing     bool   `json:"is_user_following"`
+	UserIDParam         string `json:"user_id"`
+	Limit               int    `json:"limit"`
+	Cursor              string `json:"cursor"`
+	IncludeUserActivity bool   `json:"include_user_activity"`
 
 	UserID    string `json:"-"`
 	UserEmail string `json:"-"`

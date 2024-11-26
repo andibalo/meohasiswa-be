@@ -137,7 +137,6 @@ func (s *threadService) GetThreadList(ctx context.Context, req request.GetThread
 	var resp response.GetThreadListResponse
 
 	threads, pagination, err := s.threadRepo.GetList(req)
-
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[GetThreadList] Failed to get thread list", zap.Error(err))
 
@@ -183,6 +182,16 @@ func (s *threadService) mapThreadListData(threads []model.Thread) []response.Thr
 		if t.User.University != nil {
 			tld.UniversityAbbreviatedName = pkg.ToPointer(t.User.University.AbbreviatedName)
 			tld.UniversityImageURL = pkg.ToPointer(t.User.University.ImageURL)
+		}
+
+		if t.ThreadAction != "" {
+			if t.ThreadAction == constants.LIKE_ACTION {
+				tld.IsLiked = true
+			}
+
+			if t.ThreadAction == constants.DISLIKE_ACTION {
+				tld.IsDisliked = true
+			}
 		}
 
 		threadData = append(threadData, tld)
