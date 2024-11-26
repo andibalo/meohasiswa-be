@@ -324,6 +324,32 @@ func (s *threadService) LikeThread(ctx context.Context, req request.LikeThreadRe
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to increment thread likes count")
 	}
 
+	if lastThreadActivity != "" {
+
+		updateValues := map[string]interface{}{
+			"action":     constants.LIKE_ACTION,
+			"updated_by": req.UserEmail,
+			"updated_at": time.Now(),
+		}
+
+		err = s.threadRepo.UpdateThreadActivityByIDAndActorIDTx(req.ThreadID, req.UserID, updateValues, tx)
+		if err != nil {
+			s.cfg.Logger().ErrorWithContext(ctx, "[LikeThread] Failed to update thread activity", zap.Error(err))
+
+			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update thread activity")
+		}
+
+		// TODO: Save to thread activity history
+
+		err = tx.Commit()
+		if err != nil {
+			s.cfg.Logger().ErrorWithContext(ctx, "[LikeThread] Failed to commit transaction", zap.Error(err))
+			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+		}
+
+		return nil
+	}
+
 	threadActivity := &model.ThreadActivity{
 		ID:            uuid.NewString(),
 		ThreadID:      req.ThreadID,
@@ -380,22 +406,20 @@ func (s *threadService) unlikeThread(ctx context.Context, req request.LikeThread
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to decrement thread likes count")
 	}
 
-	threadActivity := &model.ThreadActivity{
-		ID:            uuid.NewString(),
-		ThreadID:      req.ThreadID,
-		ActorID:       req.UserID,
-		ActorEmail:    req.UserEmail,
-		ActorUsername: req.Username,
-		Action:        constants.UNLIKE_ACTION,
-		CreatedBy:     req.UserEmail,
+	updateValues := map[string]interface{}{
+		"action":     constants.UNLIKE_ACTION,
+		"updated_by": req.UserEmail,
+		"updated_at": time.Now(),
 	}
 
-	err = s.threadRepo.SaveThreadActivityTx(threadActivity, tx)
+	err = s.threadRepo.UpdateThreadActivityByIDAndActorIDTx(req.ThreadID, req.UserID, updateValues, tx)
 	if err != nil {
-		s.cfg.Logger().ErrorWithContext(ctx, "[unlikeThread] Failed to save thread activity", zap.Error(err))
+		s.cfg.Logger().ErrorWithContext(ctx, "[unlikeThread] Failed to update thread activity", zap.Error(err))
 
-		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to save thread activity")
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update thread activity")
 	}
+
+	// TODO: Save to thread activity history
 
 	return nil
 }
@@ -450,6 +474,32 @@ func (s *threadService) DislikeThread(ctx context.Context, req request.DislikeTh
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to increment thread dislikes count")
 	}
 
+	if lastThreadActivity != "" {
+
+		updateValues := map[string]interface{}{
+			"action":     constants.DISLIKE_ACTION,
+			"updated_by": req.UserEmail,
+			"updated_at": time.Now(),
+		}
+
+		err = s.threadRepo.UpdateThreadActivityByIDAndActorIDTx(req.ThreadID, req.UserID, updateValues, tx)
+		if err != nil {
+			s.cfg.Logger().ErrorWithContext(ctx, "[DislikeThread] Failed to update thread activity", zap.Error(err))
+
+			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update thread activity")
+		}
+
+		// TODO: Save to thread activity history
+
+		err = tx.Commit()
+		if err != nil {
+			s.cfg.Logger().ErrorWithContext(ctx, "[DislikeThread] Failed to commit transaction", zap.Error(err))
+			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+		}
+
+		return nil
+	}
+
 	threadActivity := &model.ThreadActivity{
 		ID:            uuid.NewString(),
 		ThreadID:      req.ThreadID,
@@ -487,22 +537,20 @@ func (s *threadService) unDislikeThread(ctx context.Context, req request.Dislike
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to decrement thread dislikes count")
 	}
 
-	threadActivity := &model.ThreadActivity{
-		ID:            uuid.NewString(),
-		ThreadID:      req.ThreadID,
-		ActorID:       req.UserID,
-		ActorEmail:    req.UserEmail,
-		ActorUsername: req.Username,
-		Action:        constants.UNDISLIKE_ACTION,
-		CreatedBy:     req.UserEmail,
+	updateValues := map[string]interface{}{
+		"action":     constants.UNDISLIKE_ACTION,
+		"updated_by": req.UserEmail,
+		"updated_at": time.Now(),
 	}
 
-	err = s.threadRepo.SaveThreadActivityTx(threadActivity, tx)
+	err = s.threadRepo.UpdateThreadActivityByIDAndActorIDTx(req.ThreadID, req.UserID, updateValues, tx)
 	if err != nil {
-		s.cfg.Logger().ErrorWithContext(ctx, "[unDislikeThread] Failed to save thread activity", zap.Error(err))
+		s.cfg.Logger().ErrorWithContext(ctx, "[unDislikeThread] Failed to update thread activity", zap.Error(err))
 
-		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to save thread activity")
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update thread activity")
 	}
+
+	// TODO: Save to thread activity history
 
 	return nil
 }

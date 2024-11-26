@@ -139,6 +139,21 @@ func (r *threadRepository) SaveThreadActivityTx(threadActivity *model.ThreadActi
 	return nil
 }
 
+func (r *threadRepository) UpdateThreadActivityByIDAndActorIDTx(threadActivityID string, actorID string, updateValues map[string]interface{}, tx bun.Tx) error {
+
+	_, err := tx.NewUpdate().
+		Model(&updateValues).
+		TableExpr("thread_activity").
+		Where("thread_id = ?", threadActivityID).
+		Where("actor_id = ?", actorID).
+		Exec(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *threadRepository) SaveThreadCommentTx(threadComment *model.ThreadComment, tx bun.Tx) error {
 
 	_, err := tx.NewInsert().Model(threadComment).Exec(context.Background())

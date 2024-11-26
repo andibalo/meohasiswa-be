@@ -159,7 +159,11 @@ CREATE TABLE thread_activity (
     thread_id UUID NOT NULL REFERENCES thread(id),
     action VARCHAR(100) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    created_by VARCHAR NOT NULL
+    created_by VARCHAR NOT NULL,
+    updated_at TIMESTAMPTZ,
+    updated_by VARCHAR(100),
+    deleted_at TIMESTAMPTZ,
+    deleted_by VARCHAR(100)
 );
 
 CREATE TABLE thread_comment (
