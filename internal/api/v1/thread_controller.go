@@ -114,6 +114,10 @@ func (h *ThreadController) GetThreadDetail(c *gin.Context) {
 
 	data.ThreadID = c.Param("thread_id")
 
+	data.UserID = claims.ID
+	data.UserEmail = claims.Email
+	data.Username = claims.UserName
+
 	resp, err := h.threadSvc.GetThreadDetail(c.Request.Context(), data)
 	if err != nil {
 		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[GetThreadDetail] Failed to get thread detail", zap.Error(err))

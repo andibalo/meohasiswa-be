@@ -220,12 +220,18 @@ func (s *threadService) GetThreadDetail(ctx context.Context, req request.GetThre
 		return resp, oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to get thread detail")
 	}
 
-	resp.Data = s.mapThreadDetailData(thread)
+	ta, err := s.threadRepo.GetLastThreadActivityByUserID(req.ThreadID, req.UserID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		s.cfg.Logger().ErrorWithContext(ctx, "[GetThreadDetail] Failed to get user last thread activity", zap.Error(err))
+		return resp, oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to get user last thread activity")
+	}
+
+	resp.Data = s.mapThreadDetailData(thread, ta)
 
 	return resp, nil
 }
 
-func (s *threadService) mapThreadDetailData(thread model.Thread) response.ThreadDetailData {
+func (s *threadService) mapThreadDetailData(thread model.Thread, threadActivity *model.ThreadActivity) response.ThreadDetailData {
 
 	threadComments := []response.ThreadComment{}
 
@@ -278,6 +284,16 @@ func (s *threadService) mapThreadDetailData(thread model.Thread) response.Thread
 		}
 
 		td.Comments = threadComments
+	}
+
+	if threadActivity != nil {
+		if threadActivity.Action == constants.LIKE_ACTION {
+			td.IsLiked = true
+		}
+
+		if threadActivity.Action == constants.DISLIKE_ACTION {
+			td.IsDisliked = true
+		}
 	}
 
 	return td
