@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 )
 
 func HashPassword(password string) (string, error) {
@@ -57,4 +58,12 @@ func GenRandNumber(n int) string {
 	}
 
 	return strconv.Itoa(randInt)
+}
+
+func TruncateWithEllipsis(s string, maxLength int) string {
+	if utf8.RuneCountInString(s) > maxLength {
+		runes := []rune(s)
+		return string(runes[:maxLength]) + "..."
+	}
+	return s
 }

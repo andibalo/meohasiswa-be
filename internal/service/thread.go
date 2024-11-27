@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"github.com/andibalo/meowhasiswa-be/internal/config"
 	"github.com/andibalo/meowhasiswa-be/internal/constants"
 	"github.com/andibalo/meowhasiswa-be/internal/model"
@@ -13,6 +14,7 @@ import (
 	"github.com/andibalo/meowhasiswa-be/pkg"
 	"github.com/andibalo/meowhasiswa-be/pkg/apperr"
 	"github.com/andibalo/meowhasiswa-be/pkg/httpresp"
+	"github.com/andibalo/meowhasiswa-be/pkg/integration/notifsvc"
 	"github.com/google/uuid"
 	"github.com/samber/oops"
 	"github.com/uptrace/bun"
@@ -24,14 +26,18 @@ import (
 type threadService struct {
 	cfg        config.Config
 	threadRepo repository.ThreadRepository
+	userRepo   repository.UserRepository
+	notifCl    notifsvc.INotifSvc
 	db         *bun.DB
 }
 
-func NewThreadService(cfg config.Config, threadRepo repository.ThreadRepository, db *bun.DB) ThreadService {
+func NewThreadService(cfg config.Config, threadRepo repository.ThreadRepository, userRepo repository.UserRepository, notifCl notifsvc.INotifSvc, db *bun.DB) ThreadService {
 
 	return &threadService{
 		cfg:        cfg,
 		threadRepo: threadRepo,
+		userRepo:   userRepo,
+		notifCl:    notifCl,
 		db:         db,
 	}
 }
@@ -584,6 +590,34 @@ func (s *threadService) CommentThread(ctx context.Context, req request.CommentTh
 	//ctx, endFunc := trace.Start(ctx, "ThreadService.CommentThread", "service")
 	//defer endFunc()
 
+	thread, err := s.threadRepo.GetByID(req.ThreadID)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			s.cfg.Logger().ErrorWithContext(ctx, "[CommentThread] Thread does not exist", zap.Error(err))
+
+			return oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("Thread does not exist")
+		}
+
+		s.cfg.Logger().ErrorWithContext(ctx, "[CommentThread] Failed to get thread detail", zap.Error(err))
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to get thread detail")
+	}
+
+	userDevices, err := s.userRepo.GetUserDevices(request.GetUserDevicesReq{
+		UserID: thread.UserID,
+	})
+
+	if len(userDevices) == 0 {
+		s.cfg.Logger().ErrorWithContext(ctx, "[CommentThread] User devices not found", zap.Error(err))
+		return oops.Code(response.NotFound.AsString()).With(httpresp.StatusCodeCtxKey, http.NotFound).Errorf("User devices not found")
+	}
+
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[CommentThread] Failed to get user devices", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to get user devices")
+	}
+
 	tx, err := s.db.Begin()
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[CommentThread] Failed to begin transaction", zap.Error(err))
@@ -616,6 +650,28 @@ func (s *threadService) CommentThread(ctx context.Context, req request.CommentTh
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[CommentThread] Failed to commit transaction", zap.Error(err))
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+	}
+
+	if thread.UserID != req.UserID {
+		var notificationTokens []string
+
+		for _, ud := range userDevices {
+			if ud.IsNotificationActive {
+				notificationTokens = append(notificationTokens, ud.NotificationToken)
+			}
+		}
+
+		if len(notificationTokens) > 0 {
+			_, err = s.notifCl.SendPushNotification(ctx, notifsvc.SendPushNotificationReq{
+				NotificationTokens: notificationTokens,
+				Title:              "Someone commented on your thread!",
+				Content:            fmt.Sprintf("%s: %s", req.Username, pkg.TruncateWithEllipsis(req.Content, 50)),
+			})
+
+			if err != nil {
+				s.cfg.Logger().ErrorWithContext(ctx, "[CommentThread] Failed to send push notification", zap.Error(err))
+			}
+		}
 	}
 
 	return nil

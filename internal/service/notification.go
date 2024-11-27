@@ -30,9 +30,9 @@ func (s *notificationService) SendPushNotification(ctx context.Context, req requ
 	//defer endFunc()
 
 	sendNotifReq := notifsvc.SendPushNotificationReq{
-		NotificationToken: req.NotificationToken,
-		Title:             req.Title,
-		Content:           req.Content,
+		NotificationTokens: req.NotificationTokens,
+		Title:              req.Title,
+		Content:            req.Content,
 	}
 
 	_, err := s.notifClient.SendPushNotification(ctx, sendNotifReq)
