@@ -16,3 +16,12 @@ const (
 	UNI_RATING_PRO = "PRO"
 	UNI_RATING_CON = "CON"
 )
+
+// notification
+
+const (
+	EVENT_TYPE_KEY = "event_type"
+	APP_ROUTE_KEY  = "route"
+
+	COMMENT_ON_THREAD_EVENT = "COMMENT_ON_THREAD"
+)

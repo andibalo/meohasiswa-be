@@ -5,7 +5,8 @@ type CreateNotifTemplateReq struct {
 }
 
 type SendPushNotificationReq struct {
-	NotificationTokens []string `json:"notification_tokens"`
-	Title              string   `json:"title"`
-	Content            string   `json:"content"`
+	NotificationTokens []string          `json:"notification_tokens"`
+	Title              string            `json:"title"`
+	Content            string            `json:"content"`
+	Data               map[string]string `json:"data"`
 }

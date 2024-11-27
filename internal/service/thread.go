@@ -662,10 +662,17 @@ func (s *threadService) CommentThread(ctx context.Context, req request.CommentTh
 		}
 
 		if len(notificationTokens) > 0 {
+
+			notifData := map[string]string{
+				constants.APP_ROUTE_KEY:  "/thread/" + thread.ID,
+				constants.EVENT_TYPE_KEY: constants.COMMENT_ON_THREAD_EVENT,
+			}
+
 			_, err = s.notifCl.SendPushNotification(ctx, notifsvc.SendPushNotificationReq{
 				NotificationTokens: notificationTokens,
 				Title:              "Someone commented on your thread!",
 				Content:            fmt.Sprintf("%s: %s", req.Username, pkg.TruncateWithEllipsis(req.Content, 50)),
+				Data:               notifData,
 			})
 
 			if err != nil {
