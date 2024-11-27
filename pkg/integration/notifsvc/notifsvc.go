@@ -12,6 +12,7 @@ import (
 
 type INotifSvc interface {
 	CreateNotifTemplate(ctx context.Context, req CreateNotifTemplateReq) (res CreateNotifTemplateResp, err error)
+	SendPushNotification(ctx context.Context, req SendPushNotificationReq) (res SendPushNotificationResp, err error)
 }
 
 type notifsvc struct {
@@ -60,6 +61,52 @@ func (ns *notifsvc) CreateNotifTemplate(ctx context.Context, req CreateNotifTemp
 		return res, err
 	}
 
+	if resp.StatusCode != 200 {
+		if resp.StatusCode == 400 || resp.StatusCode == 402 {
+			return res, errors.New("bad request")
+		}
+
+		if resp.StatusCode == 404 {
+			return res, errors.New("not found")
+		}
+
+		return res, errors.New("internal server error")
+	}
+
+	return res, nil
+}
+
+func (ns *notifsvc) SendPushNotification(ctx context.Context, req SendPushNotificationReq) (res SendPushNotificationResp, err error) {
+	ctx, endFunc := trace.Start(ctx, "notifsvc.SendPushNotification", "external")
+
+	defer endFunc()
+
+	resp, err := ns.httpClient.PostJSON(ctx, &httpclient.PropRequest{
+		URI: ns.URL + "/api/v1/notification/push",
+		Headers: map[string]string{
+			"X-App-Token": ns.Token,
+			"X-Client-Id": ns.AppID,
+		},
+		Body: req,
+	})
+
+	if err != nil {
+		return res, err
+	}
+
+	rawData, err := io.ReadAll(resp.Body)
+
+	if err != nil {
+		return res, err
+	}
+
+	defer resp.Body.Close()
+
+	if err = json.Unmarshal(rawData, &res); err != nil {
+		return res, err
+	}
+
+	// TODO: Improve error handling
 	if resp.StatusCode != 200 {
 		if resp.StatusCode == 400 || resp.StatusCode == 402 {
 			return res, errors.New("bad request")

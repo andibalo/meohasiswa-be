@@ -1,9 +1,12 @@
 package httpclient
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	otelIn "github.com/andibalo/meowhasiswa-be/pkg/trace/otel"
+	"go.uber.org/zap"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -144,6 +147,19 @@ func (c *restyC) do(ctx context.Context, method string, prop *PropRequest) (*htt
 		dumpresponse, _ := httputil.DumpResponse(resp.RawResponse, true)
 		attrs = append(attrs, attribute.String("response.dumpresponse", string(dumpresponse)))
 	}
+
+	bodyBytes, _ := io.ReadAll(resp.RawBody())
+	c.config.Logger().Info("Response Info:",
+		zap.Int("status_code", resp.StatusCode()),
+		zap.String("status", resp.Status()),
+		zap.String("proto", resp.Proto()),
+		zap.Any("time", resp.Time()),
+		zap.Any("received_at", resp.ReceivedAt()),
+		zap.Any("response", string(bodyBytes)),
+		zap.Error(err),
+	)
+
+	resp.RawResponse.Body = io.NopCloser(bytes.NewReader(bodyBytes))
 
 	return resp.RawResponse, err
 }

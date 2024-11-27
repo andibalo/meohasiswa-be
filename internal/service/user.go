@@ -12,7 +12,6 @@ import (
 	"github.com/andibalo/meowhasiswa-be/pkg"
 	"github.com/andibalo/meowhasiswa-be/pkg/apperr"
 	"github.com/andibalo/meowhasiswa-be/pkg/httpresp"
-	"github.com/andibalo/meowhasiswa-be/pkg/integration/notifsvc"
 	"github.com/google/uuid"
 	"github.com/samber/oops"
 	"go.uber.org/zap"
@@ -21,15 +20,13 @@ import (
 
 type userService struct {
 	cfg      config.Config
-	notifSvc notifsvc.INotifSvc
 	userRepo repository.UserRepository
 }
 
-func NewUserService(cfg config.Config, notifSvc notifsvc.INotifSvc, userRepo repository.UserRepository) UserService {
+func NewUserService(cfg config.Config, userRepo repository.UserRepository) UserService {
 
 	return &userService{
 		cfg:      cfg,
-		notifSvc: notifSvc,
 		userRepo: userRepo,
 	}
 }
@@ -112,18 +109,6 @@ func (s *userService) CreateUserDevice(ctx context.Context, req request.CreateUs
 		s.cfg.Logger().ErrorWithContext(ctx, "[CreateUserDevice] Failed to create user device", zap.Error(err))
 
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to create user device")
-	}
-
-	return nil
-}
-
-func (s *userService) TestCallNotifService(ctx context.Context, req request.TestCallNotifServiceReq) error {
-	//ctx, endFunc := trace.Start(ctx, "UserService.TestCallNotifService", "service")
-	//defer endFunc()
-
-	_, err := s.notifSvc.CreateNotifTemplate(ctx, notifsvc.CreateNotifTemplateReq{TemplateName: req.TemplateName})
-	if err != nil {
-		return err
 	}
 
 	return nil

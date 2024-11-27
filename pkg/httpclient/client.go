@@ -100,8 +100,4 @@ func (c *restyC) initClient() {
 			return nil
 		}).
 		SetLogger(rl)
-
-	if c.config.AppEnv() != config.EnvProdEnvironment {
-		c.client.SetDebug(true) // will log request & response
-	}
 }

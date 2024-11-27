@@ -8,7 +8,6 @@ import (
 )
 
 type UserService interface {
-	TestCallNotifService(ctx context.Context, req request.TestCallNotifServiceReq) error
 	GetUserProfile(ctx context.Context, req request.GetUserProfileReq) (*model.User, error)
 	CreateUserDevice(ctx context.Context, req request.CreateUserDeviceReq) error
 	GetUserDevices(ctx context.Context, req request.GetUserDevicesReq) ([]model.UserDevice, error)
@@ -49,4 +48,8 @@ type UniversityService interface {
 
 type ImageService interface {
 	UploadImage(ctx context.Context, fileData model.File) (response.UploadImageResp, error)
+}
+
+type NotificationService interface {
+	SendPushNotification(ctx context.Context, req request.SendPushNotificationReq) error
 }

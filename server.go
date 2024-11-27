@@ -51,17 +51,17 @@ func NewServer(cfg config.Config, tracer *trace.Tracer, db *bun.DB, s3Client *s3
 	threadRepo := repository.NewThreadRepository(db)
 
 	brevoCfg := brevo.NewConfiguration()
-
 	brevoCfg.AddDefaultHeader("api-key", cfg.GetBrevoSvcCfg().APIKey)
-
 	brevoCl := brevo.NewAPIClient(brevoCfg)
-	brevoSvc := mailer.NewBrevoService(cfg, brevoCl)
 
-	notifSvc := notifsvc.NewNotificationService(cfg, hc)
+	brevoSvc := mailer.NewBrevoService(cfg, brevoCl)
+	notifCl := notifsvc.NewNotificationService(cfg, hc)
+
+	notifSvc := service.NewNotificationService(cfg, notifCl)
 	imageSvc := service.NewImageService(cfg, s3Repo)
 	universitySvc := service.NewUniversityService(cfg, universityRepo, userRepo, db)
 	authSvc := service.NewAuthService(cfg, userRepo, db, brevoSvc)
-	userSvc := service.NewUserService(cfg, notifSvc, userRepo)
+	userSvc := service.NewUserService(cfg, userRepo)
 	subThreadSvc := service.NewSubThreadService(cfg, subThreadRepo, db)
 	threadSvc := service.NewThreadService(cfg, threadRepo, db)
 
@@ -71,8 +71,9 @@ func NewServer(cfg config.Config, tracer *trace.Tracer, db *bun.DB, s3Client *s3
 	stc := v1.NewSubThreadController(cfg, subThreadSvc)
 	tc := v1.NewThreadController(cfg, threadSvc)
 	unc := v1.NewUniversityController(cfg, universitySvc)
+	nc := v1.NewNotificationController(cfg, notifSvc)
 
-	registerHandlers(router, &api.HealthCheck{}, uc, ac, stc, tc, unc, ic)
+	registerHandlers(router, &api.HealthCheck{}, uc, ac, stc, tc, unc, ic, nc)
 
 	return &Server{
 		gin: router,
