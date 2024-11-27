@@ -26,7 +26,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"subthread_id\": \"c1a2f145-d7cb-4c2a-80e4-937de53697c1\",\r\n    \"title\": \"My third love\",\r\n    \"content\": \"this is a description\",\r\n    \"content_summary\": \"this is a summary\"\r\n}",
+							"raw": "{\r\n    \"subthread_id\": \"c1a2f145-d7cb-4c2a-80e4-937de53697c1\",\r\n    \"title\": \"My seven love\",\r\n    \"content\": \"this is a description\",\r\n    \"content_summary\": \"this is a summary\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -63,7 +63,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/api/v1/thread?user_id=06f59770-6e6b-4687-9a97-64ba60ec1c68",
+							"raw": "{{base_url}}/api/v1/thread?limit=11&include_user_activity=true",
 							"host": [
 								"{{base_url}}"
 							],
@@ -75,23 +75,36 @@
 							"query": [
 								{
 									"key": "cursor",
-									"value": "2024-11-08T09:41:03.12703Z_625468c0-0034-4554-a51f-96f8f68aa44e",
-									"description": "createdAt_Id",
+									"value": "0.02_3940cf54-4ae3-47ee-b8e6-e344206e6d9a",
 									"disabled": true
 								},
 								{
 									"key": "limit",
-									"value": "2",
-									"disabled": true
+									"value": "11"
 								},
 								{
 									"key": "user_id",
-									"value": "06f59770-6e6b-4687-9a97-64ba60ec1c68"
+									"value": "06f59770-6e6b-4687-9a97-64ba60ec1c68",
+									"disabled": true
 								},
 								{
 									"key": "is_user_following",
 									"value": "true",
 									"disabled": true
+								},
+								{
+									"key": "is_trending",
+									"value": "true",
+									"disabled": true
+								},
+								{
+									"key": "_q",
+									"value": "love",
+									"disabled": true
+								},
+								{
+									"key": "include_user_activity",
+									"value": "true"
 								}
 							]
 						}
@@ -198,7 +211,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"title\": \"Update title\",\r\n    \"content\": \"this is a description\",\r\n    \"content_summary\": \"this is a summary\"\r\n}",
+							"raw": "{\r\n    \"title\": \"My seven love update\",\r\n    \"content\": \"this is a description\",\r\n    \"content_summary\": \"this is a summary\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -219,7 +232,7 @@
 							"variable": [
 								{
 									"key": "thread_id",
-									"value": "b1887735-1d89-48bf-8289-a60454bd8154"
+									"value": "d663a837-fb6b-40d8-84d6-a1041b3e381b"
 								}
 							]
 						}
@@ -435,6 +448,21 @@
 								{
 									"key": "is_following",
 									"value": "true"
+								},
+								{
+									"key": "_q",
+									"value": "umn",
+									"disabled": true
+								},
+								{
+									"key": "include_university_subthread",
+									"value": "true",
+									"disabled": true
+								},
+								{
+									"key": "should_exclude_following",
+									"value": "true",
+									"disabled": true
 								}
 							]
 						}
@@ -637,6 +665,42 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Get Subthread By ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/subthread/:subthread_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"subthread",
+								":subthread_id"
+							],
+							"variable": [
+								{
+									"key": "subthread_id",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -718,12 +782,17 @@
 							"query": [
 								{
 									"key": "cursor",
-									"value": null,
+									"value": "",
 									"disabled": true
 								},
 								{
 									"key": "limit",
-									"value": null,
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "_q",
+									"value": "binus",
 									"disabled": true
 								}
 							]
@@ -734,92 +803,323 @@
 			]
 		},
 		{
-			"name": "Register User",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"username\": \"test\",\r\n    \"email\": \"test@gmail.com\",\r\n    \"password\": \"test\"\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{base_url}}/api/v1/auth/register",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"auth",
-						"register"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Login",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"email\": \"andi.usman@student.umn.ac.id\",\r\n    \"password\": \"test\"\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{base_url}}/api/v1/auth/login",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"auth",
-						"login"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Get User Profile",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
+			"name": "External",
+			"item": [
+				{
+					"name": "Notification",
+					"item": [
 						{
-							"key": "token",
-							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
-							"type": "string"
+							"name": "Send Push Notification",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"notification_token\": \"ExponentPushToken[vChOFIGDvTtaT4H9FF0_iG]\",\r\n    \"title\": \"test from server\",\r\n    \"content\": \"test body from server\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8083/api/v1/notification/push",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8083",
+									"path": [
+										"api",
+										"v1",
+										"notification",
+										"push"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Health Check",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8083/health",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8083",
+									"path": [
+										"health"
+									]
+								}
+							},
+							"response": []
 						}
 					]
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/api/v1/user/profile",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"user",
-						"profile"
-					]
 				}
-			},
-			"response": []
+			]
+		},
+		{
+			"name": "Notification",
+			"item": [
+				{
+					"name": "Send Push Notification",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"notification_token\": \"ExponentPushToken[vChOFIGDvTtaT4H9FF0_iG]\",\r\n    \"title\": \"test from core service\",\r\n    \"content\": \"test body from server\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8082/api/v1/notification/push",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"api",
+								"v1",
+								"notification",
+								"push"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Register User",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"fesfes\",\r\n    \"email\": \"abdullah.asep@student.umn.ac.id\",\r\n    \"password\": \"test\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"andi.usman@student.umn.ac.id\",\r\n    \"password\": \"test\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Email",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"abdullah.asep@student.umn.ac.id\",\r\n    \"code\": \"553210\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/verify-email",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"verify-email"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Get User Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/user/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"user",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create User Device",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"brand\": \"Apple\",\r\n    \"type\": \"Smartphone\",\r\n    \"model\": \"iPhone 12\",\r\n    \"notification_token\": \"abcdef123456dawdwa\",\r\n    \"is_notification_active\": true\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/user/device/:user_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"user",
+								"device",
+								":user_id"
+							],
+							"variable": [
+								{
+									"key": "user_id",
+									"value": "f3cb8535-9977-4a1c-874a-2c0e1bed503d"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Devices",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/user/device?notification_token=abcdef123456&user_id=f3cb8535-9977-4a1c-874a-2c0e1bed503d",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"user",
+								"device"
+							],
+							"query": [
+								{
+									"key": "notification_token",
+									"value": "abcdef123456"
+								},
+								{
+									"key": "user_id",
+									"value": "f3cb8535-9977-4a1c-874a-2c0e1bed503d"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		},
 		{
 			"name": "Upload Image",
@@ -862,6 +1162,23 @@
 						"v1",
 						"image",
 						"upload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/health",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"health"
 					]
 				}
 			},
