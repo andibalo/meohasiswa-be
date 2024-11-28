@@ -239,8 +239,6 @@ func (s *threadService) GetThreadDetail(ctx context.Context, req request.GetThre
 
 func (s *threadService) mapThreadDetailData(thread model.Thread, threadActivity *model.ThreadActivity) response.ThreadDetailData {
 
-	threadComments := []response.ThreadComment{}
-
 	td := response.ThreadDetailData{
 		ID:             thread.ID,
 		UserID:         thread.UserID,
@@ -264,32 +262,6 @@ func (s *threadService) mapThreadDetailData(thread model.Thread, threadActivity 
 	if thread.User.University != nil {
 		td.UniversityAbbreviatedName = pkg.ToPointer(thread.User.University.AbbreviatedName)
 		td.UniversityImageURL = pkg.ToPointer(thread.User.University.ImageURL)
-	}
-
-	if thread.Comments != nil && len(thread.Comments) > 0 {
-		for _, c := range thread.Comments {
-			tc := response.ThreadComment{
-				ID:           c.ID,
-				UserID:       c.UserID,
-				UserName:     c.User.Username,
-				Content:      c.Content,
-				LikeCount:    c.LikeCount,
-				DislikeCount: c.DislikeCount,
-				CreatedBy:    c.CreatedBy,
-				CreatedAt:    c.CreatedAt,
-				UpdatedBy:    c.UpdatedBy,
-				UpdatedAt:    c.UpdatedAt,
-			}
-
-			if c.User.University != nil {
-				tc.UniversityAbbreviatedName = pkg.ToPointer(c.User.University.AbbreviatedName)
-				tc.UniversityImageURL = pkg.ToPointer(c.User.University.ImageURL)
-			}
-
-			threadComments = append(threadComments, tc)
-		}
-
-		td.Comments = threadComments
 	}
 
 	if threadActivity != nil {

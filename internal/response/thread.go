@@ -35,28 +35,27 @@ type GetThreadListResponse struct {
 }
 
 type ThreadDetailData struct {
-	ID                        string          `json:"id"`
-	UserID                    string          `json:"user_id"`
-	UserName                  string          `json:"username"`
-	UniversityAbbreviatedName *string         `json:"university_abbreviated_name"`
-	UniversityImageURL        *string         `json:"university_image_url"`
-	SubThreadID               string          `json:"subthread_id"`
-	SubThreadName             string          `json:"subthread_name"`
-	SubThreadColor            string          `json:"subthread_color"`
-	Title                     string          `json:"title"`
-	Content                   string          `json:"content"`
-	ContentSummary            string          `json:"content_summary"`
-	IsActive                  bool            `json:"is_active"`
-	LikeCount                 int64           `json:"like_count"`
-	DislikeCount              int64           `json:"dislike_count"`
-	CommentCount              int64           `json:"comment_count"`
-	IsLiked                   bool            `json:"is_liked"`
-	IsDisliked                bool            `json:"is_disliked"`
-	Comments                  []ThreadComment `json:"comments"`
-	CreatedBy                 string          `json:"created_by"`
-	CreatedAt                 time.Time       `json:"created_at"`
-	UpdatedBy                 *string         `json:"updated_by"`
-	UpdatedAt                 bun.NullTime    `json:"updated_at"`
+	ID                        string       `json:"id"`
+	UserID                    string       `json:"user_id"`
+	UserName                  string       `json:"username"`
+	UniversityAbbreviatedName *string      `json:"university_abbreviated_name"`
+	UniversityImageURL        *string      `json:"university_image_url"`
+	SubThreadID               string       `json:"subthread_id"`
+	SubThreadName             string       `json:"subthread_name"`
+	SubThreadColor            string       `json:"subthread_color"`
+	Title                     string       `json:"title"`
+	Content                   string       `json:"content"`
+	ContentSummary            string       `json:"content_summary"`
+	IsActive                  bool         `json:"is_active"`
+	LikeCount                 int64        `json:"like_count"`
+	DislikeCount              int64        `json:"dislike_count"`
+	CommentCount              int64        `json:"comment_count"`
+	IsLiked                   bool         `json:"is_liked"`
+	IsDisliked                bool         `json:"is_disliked"`
+	CreatedBy                 string       `json:"created_by"`
+	CreatedAt                 time.Time    `json:"created_at"`
+	UpdatedBy                 *string      `json:"updated_by"`
+	UpdatedAt                 bun.NullTime `json:"updated_at"`
 }
 
 type ThreadComment struct {

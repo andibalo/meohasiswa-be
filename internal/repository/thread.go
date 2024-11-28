@@ -211,11 +211,6 @@ func (r *threadRepository) GetByID(id string) (model.Thread, error) {
 		Relation("SubThread", func(q *bun.SelectQuery) *bun.SelectQuery {
 			return q.Column("id", "name", "label_color")
 		}).
-		Relation("Comments").
-		Relation("Comments.User", func(q *bun.SelectQuery) *bun.SelectQuery {
-			return q.Column("id", "username")
-		}).
-		Relation("Comments.User.University").
 		Where("th.id = ?", id).
 		Scan(context.Background())
 
