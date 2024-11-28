@@ -47,10 +47,15 @@ type ThreadRepository interface {
 	DeleteByID(threadID string, updateValues map[string]interface{}) error
 	GetList(req request.GetThreadListReq) ([]model.Thread, pkg.Pagination, error)
 	GetByID(id string) (model.Thread, error)
+	GetThreadCommentReplyByID(id string) (model.ThreadCommentReply, error)
 	GetLastThreadActivityByUserID(threadId string, userId string) (*model.ThreadActivity, error)
+	GetLastThreadCommentActivityByUserID(threadId string, commentId string, userId string) (*model.ThreadCommentActivity, error)
+	GetLastThreadCommentActivityReplyByUserID(threadId string, commentReplyId string, userId string) (*model.ThreadCommentActivity, error)
 	SaveThreadActivity(threadActivity *model.ThreadActivity) error
 	SaveThreadActivityTx(threadActivity *model.ThreadActivity, tx bun.Tx) error
-	UpdateThreadActivityByIDAndActorIDTx(threadActivityID string, actorID string, updateValues map[string]interface{}, tx bun.Tx) error
+	UpdateThreadActivityTx(threadActivityID string, actorID string, updateValues map[string]interface{}, tx bun.Tx) error
+	UpdateThreadCommentActivityTx(threadCommentID string, actorID string, updateValues map[string]interface{}, tx bun.Tx) error
+	UpdateThreadCommentActivityReplyTx(threadCommentReplyID string, actorID string, updateValues map[string]interface{}, tx bun.Tx) error
 	SaveThreadCommentTx(threadComment *model.ThreadComment, tx bun.Tx) error
 	SaveCommentReplyTx(threadCommentReply *model.ThreadCommentReply, tx bun.Tx) error
 	IncrementLikesCountTx(threadID string, tx bun.Tx) error
@@ -59,6 +64,15 @@ type ThreadRepository interface {
 	DecrementDislikesCountTx(threadID string, tx bun.Tx) error
 	IncrementCommentsCountTx(threadID string, tx bun.Tx) error
 	IncrementCommentReplyCountTx(commentID string, tx bun.Tx) error
+	IncrementCommentLikesCountTx(threadCommentID string, tx bun.Tx) error
+	DecrementCommentLikesCountTx(threadCommentID string, tx bun.Tx) error
+	IncrementCommentDislikesCountTx(threadCommentID string, tx bun.Tx) error
+	DecrementCommentDislikesCountTx(threadCommentID string, tx bun.Tx) error
+	IncrementCommentReplyLikesCountTx(threadCommentReplyID string, tx bun.Tx) error
+	DecrementCommentReplyLikesCountTx(threadCommentReplyID string, tx bun.Tx) error
+	IncrementCommentReplyDislikesCountTx(threadCommentReplyID string, tx bun.Tx) error
+	DecrementCommentReplyDislikesCountTx(threadCommentReplyID string, tx bun.Tx) error
+	SaveThreadCommentActivityTx(tca *model.ThreadCommentActivity, tx bun.Tx) error
 }
 
 type UniversityRepository interface {

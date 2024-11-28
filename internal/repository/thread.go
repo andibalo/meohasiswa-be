@@ -139,12 +139,42 @@ func (r *threadRepository) SaveThreadActivityTx(threadActivity *model.ThreadActi
 	return nil
 }
 
-func (r *threadRepository) UpdateThreadActivityByIDAndActorIDTx(threadActivityID string, actorID string, updateValues map[string]interface{}, tx bun.Tx) error {
+func (r *threadRepository) UpdateThreadActivityTx(threadID string, actorID string, updateValues map[string]interface{}, tx bun.Tx) error {
 
 	_, err := tx.NewUpdate().
 		Model(&updateValues).
 		TableExpr("thread_activity").
-		Where("thread_id = ?", threadActivityID).
+		Where("thread_id = ?", threadID).
+		Where("actor_id = ?", actorID).
+		Exec(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *threadRepository) UpdateThreadCommentActivityTx(threadCommentID string, actorID string, updateValues map[string]interface{}, tx bun.Tx) error {
+
+	_, err := tx.NewUpdate().
+		Model(&updateValues).
+		TableExpr("thread_comment_activity").
+		Where("thread_comment_id = ?", threadCommentID).
+		Where("actor_id = ?", actorID).
+		Exec(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *threadRepository) UpdateThreadCommentActivityReplyTx(threadCommentReplyID string, actorID string, updateValues map[string]interface{}, tx bun.Tx) error {
+
+	_, err := tx.NewUpdate().
+		Model(&updateValues).
+		TableExpr("thread_comment_activity").
+		Where("thread_comment_reply_id = ?", threadCommentReplyID).
 		Where("actor_id = ?", actorID).
 		Exec(context.Background())
 	if err != nil {
@@ -299,6 +329,24 @@ func (r *threadRepository) GetList(req request.GetThreadListReq) ([]model.Thread
 	return threads, pagination, nil
 }
 
+func (r *threadRepository) GetThreadCommentReplyByID(id string) (model.ThreadCommentReply, error) {
+
+	var (
+		tcr model.ThreadCommentReply
+	)
+
+	err := r.db.NewSelect().
+		Model(&tcr).
+		Where("thcr.id = ?", id).
+		Scan(context.Background())
+
+	if err != nil {
+		return tcr, err
+	}
+
+	return tcr, nil
+}
+
 func (r *threadRepository) GetLastThreadActivityByUserID(threadId string, userId string) (*model.ThreadActivity, error) {
 	threadActivity := &model.ThreadActivity{}
 
@@ -336,4 +384,144 @@ func (r *threadRepository) SaveCommentReplyTx(threadCommentReply *model.ThreadCo
 	}
 
 	return nil
+}
+
+func (r *threadRepository) IncrementCommentLikesCountTx(threadCommentID string, tx bun.Tx) error {
+
+	_, err := tx.NewRaw("UPDATE thread_comment SET like_count = like_count + 1 WHERE id = ?", threadCommentID).
+		Exec(context.Background())
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *threadRepository) DecrementCommentLikesCountTx(threadCommentID string, tx bun.Tx) error {
+
+	_, err := tx.NewRaw("UPDATE thread_comment SET like_count = like_count - 1 WHERE id = ?", threadCommentID).
+		Exec(context.Background())
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *threadRepository) IncrementCommentDislikesCountTx(threadCommentID string, tx bun.Tx) error {
+
+	_, err := tx.NewRaw("UPDATE thread_comment SET dislike_count = dislike_count + 1 WHERE id = ?", threadCommentID).
+		Exec(context.Background())
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *threadRepository) DecrementCommentDislikesCountTx(threadCommentID string, tx bun.Tx) error {
+
+	_, err := tx.NewRaw("UPDATE thread_comment SET dislike_count = dislike_count - 1 WHERE id = ?", threadCommentID).
+		Exec(context.Background())
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *threadRepository) IncrementCommentReplyLikesCountTx(threadCommentReplyID string, tx bun.Tx) error {
+
+	_, err := tx.NewRaw("UPDATE thread_comment_reply SET like_count = like_count + 1 WHERE id = ?", threadCommentReplyID).
+		Exec(context.Background())
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *threadRepository) DecrementCommentReplyLikesCountTx(threadCommentID string, tx bun.Tx) error {
+
+	_, err := tx.NewRaw("UPDATE thread_comment_reply SET like_count = like_count - 1 WHERE id = ?", threadCommentID).
+		Exec(context.Background())
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *threadRepository) IncrementCommentReplyDislikesCountTx(threadCommentID string, tx bun.Tx) error {
+
+	_, err := tx.NewRaw("UPDATE thread_comment_reply SET dislike_count = dislike_count + 1 WHERE id = ?", threadCommentID).
+		Exec(context.Background())
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *threadRepository) DecrementCommentReplyDislikesCountTx(threadCommentID string, tx bun.Tx) error {
+
+	_, err := tx.NewRaw("UPDATE thread_comment_reply SET dislike_count = dislike_count - 1 WHERE id = ?", threadCommentID).
+		Exec(context.Background())
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *threadRepository) SaveThreadCommentActivityTx(tca *model.ThreadCommentActivity, tx bun.Tx) error {
+
+	_, err := tx.NewInsert().Model(tca).Exec(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *threadRepository) GetLastThreadCommentActivityByUserID(threadId string, commentId string, userId string) (*model.ThreadCommentActivity, error) {
+	threadCommentActivity := &model.ThreadCommentActivity{}
+
+	err := r.db.NewSelect().
+		Model(threadCommentActivity).
+		Where("thread_id = ? AND thread_comment_id = ? AND actor_id = ?", threadId, commentId, userId).
+		Order("created_at desc").
+		Limit(1).
+		Scan(context.Background())
+
+	if err != nil {
+		return nil, err
+	}
+
+	return threadCommentActivity, nil
+}
+
+func (r *threadRepository) GetLastThreadCommentActivityReplyByUserID(threadId string, commentReplyId string, userId string) (*model.ThreadCommentActivity, error) {
+	threadCommentActivity := &model.ThreadCommentActivity{}
+
+	err := r.db.NewSelect().
+		Model(threadCommentActivity).
+		Where("thread_id = ? AND thread_comment_reply_id = ? AND actor_id = ?", threadId, commentReplyId, userId).
+		Order("created_at desc").
+		Limit(1).
+		Scan(context.Background())
+
+	if err != nil {
+		return nil, err
+	}
+
+	return threadCommentActivity, nil
 }

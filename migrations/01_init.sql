@@ -198,3 +198,20 @@ CREATE TABLE thread_comment_reply (
     deleted_by VARCHAR
 );
 
+CREATE TABLE thread_comment_activity (
+    id UUID PRIMARY KEY NOT NULL,
+    actor_id UUID NOT NULL REFERENCES "user"(id),
+    actor_email VARCHAR(100) NOT NULL,
+    actor_username VARCHAR(100) NOT NULL,
+    thread_id UUID NOT NULL REFERENCES thread(id),
+    thread_comment_id UUID NOT NULL REFERENCES thread_comment(id),
+    thread_comment_reply_id UUID REFERENCES thread_comment_reply(id),
+    action VARCHAR(100) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_by VARCHAR NOT NULL,
+    updated_at TIMESTAMPTZ,
+    updated_by VARCHAR(100),
+    deleted_at TIMESTAMPTZ,
+    deleted_by VARCHAR(100)
+);
+

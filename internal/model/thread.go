@@ -65,6 +65,24 @@ type ThreadComment struct {
 	DeletedAt    time.Time    `bun:",nullzero,soft_delete" json:"-"`
 }
 
+type ThreadCommentActivity struct {
+	bun.BaseModel `bun:"table:thread_comment_activity,alias:thca"`
+
+	ID                   string              `bun:",pk" json:"id"`
+	ThreadID             string              `bun:"thread_id" json:"thread_id"`
+	Thread               Thread              `bun:"rel:belongs-to,join:thread_id=id" json:"thread"`
+	ThreadCommentID      string              `bun:"thread_comment_id" json:"thread_comment_id"`
+	ThreadComment        ThreadComment       `bun:"rel:belongs-to,join:thread_comment_id=id" json:"thread_comment"`
+	ThreadCommentReplyID *string             `bun:"thread_comment_reply_id" json:"thread_comment_reply_id"`
+	ThreadCommentReply   *ThreadCommentReply `bun:"rel:belongs-to,join:thread_comment_reply_id=id" json:"thread_comment_reply"`
+	ActorID              string              `bun:"actor_id" json:"actor_id"`
+	ActorEmail           string              `bun:"actor_email" json:"actor_email"`
+	ActorUsername        string              `bun:"actor_username" json:"actor_username"`
+	Action               string              `bun:"action" json:"action"`
+	CreatedBy            string              `bun:"created_by" json:"created_by"`
+	CreatedAt            time.Time           `bun:",nullzero,default:now()" json:"created_at"`
+}
+
 type ThreadCommentReply struct {
 	bun.BaseModel `bun:"table:thread_comment_reply,alias:thcr"`
 

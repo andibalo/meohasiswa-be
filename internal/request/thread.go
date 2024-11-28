@@ -84,3 +84,23 @@ type DeleteThreadReq struct {
 	Username  string `json:"-"`
 	UserEmail string `json:"-"`
 }
+
+type LikeCommentReq struct {
+	ThreadID  string `json:"thread_id"`
+	IsReply   bool   `json:"is_reply"`
+	CommentID string `json:"-"`
+
+	UserID    string `json:"-"`
+	Username  string `json:"-"`
+	UserEmail string `json:"-"`
+}
+
+type DislikeCommentReq struct {
+	ThreadID  string `json:"thread_id" binding:"required"`
+	IsReply   bool   `json:"is_reply"`
+	CommentID string `json:"-"`
+
+	UserID    string `json:"-"`
+	Username  string `json:"-"`
+	UserEmail string `json:"-"`
+}

@@ -363,7 +363,7 @@ func (s *threadService) LikeThread(ctx context.Context, req request.LikeThreadRe
 			"updated_at": time.Now(),
 		}
 
-		err = s.threadRepo.UpdateThreadActivityByIDAndActorIDTx(req.ThreadID, req.UserID, updateValues, tx)
+		err = s.threadRepo.UpdateThreadActivityTx(req.ThreadID, req.UserID, updateValues, tx)
 		if err != nil {
 			s.cfg.Logger().ErrorWithContext(ctx, "[LikeThread] Failed to update thread activity", zap.Error(err))
 
@@ -443,7 +443,7 @@ func (s *threadService) unlikeThread(ctx context.Context, req request.LikeThread
 		"updated_at": time.Now(),
 	}
 
-	err = s.threadRepo.UpdateThreadActivityByIDAndActorIDTx(req.ThreadID, req.UserID, updateValues, tx)
+	err = s.threadRepo.UpdateThreadActivityTx(req.ThreadID, req.UserID, updateValues, tx)
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[unlikeThread] Failed to update thread activity", zap.Error(err))
 
@@ -513,7 +513,7 @@ func (s *threadService) DislikeThread(ctx context.Context, req request.DislikeTh
 			"updated_at": time.Now(),
 		}
 
-		err = s.threadRepo.UpdateThreadActivityByIDAndActorIDTx(req.ThreadID, req.UserID, updateValues, tx)
+		err = s.threadRepo.UpdateThreadActivityTx(req.ThreadID, req.UserID, updateValues, tx)
 		if err != nil {
 			s.cfg.Logger().ErrorWithContext(ctx, "[DislikeThread] Failed to update thread activity", zap.Error(err))
 
@@ -574,7 +574,7 @@ func (s *threadService) unDislikeThread(ctx context.Context, req request.Dislike
 		"updated_at": time.Now(),
 	}
 
-	err = s.threadRepo.UpdateThreadActivityByIDAndActorIDTx(req.ThreadID, req.UserID, updateValues, tx)
+	err = s.threadRepo.UpdateThreadActivityTx(req.ThreadID, req.UserID, updateValues, tx)
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[unDislikeThread] Failed to update thread activity", zap.Error(err))
 
@@ -724,4 +724,330 @@ func (s *threadService) ReplyComment(ctx context.Context, req request.ReplyComme
 	}
 
 	return nil
+}
+
+func (s *threadService) LikeComment(ctx context.Context, req request.LikeCommentReq) error {
+	//ctx, endFunc := trace.Start(ctx, "ThreadService.LikeComment", "service")
+	//defer endFunc()
+
+	// Handle is comment reply
+	if req.IsReply {
+		err := s.likeCommentReply(ctx, req)
+		if err != nil {
+			s.cfg.Logger().ErrorWithContext(ctx, "[LikeComment] Failed to like comment reply", zap.Error(err))
+			return err
+		}
+
+		return nil
+	}
+
+	lastThreadCommentActivity, err := s.getUserLastThreadCommentAction(ctx, req.ThreadID, req.CommentID, req.UserID)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[LikeComment] Failed to get user last thread comment action", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+	}
+
+	tx, err := s.db.Begin()
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[LikeComment] Failed to begin transaction", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+	}
+
+	// Unlike if previously liked
+	if lastThreadCommentActivity == constants.LIKE_ACTION {
+		err = s.unlikeComment(ctx, req, tx)
+		if err != nil {
+			s.cfg.Logger().ErrorWithContext(ctx, "[LikeComment] Failed to unlike comment", zap.Error(err))
+			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to unlike comment")
+		}
+
+		err = tx.Commit()
+		if err != nil {
+			s.cfg.Logger().ErrorWithContext(ctx, "[LikeComment] Failed to commit transaction", zap.Error(err))
+			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+		}
+
+		return nil
+	}
+
+	// Decrement dislike count if previously disliked
+	if lastThreadCommentActivity == constants.DISLIKE_ACTION {
+		err = s.threadRepo.DecrementCommentDislikesCountTx(req.CommentID, tx)
+		if err != nil {
+			s.cfg.Logger().ErrorWithContext(ctx, "[LikeComment] Failed to decrement comment dislikes count", zap.Error(err))
+
+			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to decrement comment dislikes count")
+		}
+	}
+
+	err = s.threadRepo.IncrementCommentLikesCountTx(req.CommentID, tx)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[LikeComment] Failed to increment comment likes count", zap.Error(err))
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to increment comment likes count")
+	}
+
+	if lastThreadCommentActivity != "" {
+
+		updateValues := map[string]interface{}{
+			"action":     constants.LIKE_ACTION,
+			"updated_by": req.UserEmail,
+			"updated_at": time.Now(),
+		}
+
+		err = s.threadRepo.UpdateThreadCommentActivityTx(req.CommentID, req.UserID, updateValues, tx)
+		if err != nil {
+			s.cfg.Logger().ErrorWithContext(ctx, "[LikeComment] Failed to update thread comment activity", zap.Error(err))
+
+			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update thread comment activity")
+		}
+
+		// TODO: Save to thread activity history
+
+		err = tx.Commit()
+		if err != nil {
+			s.cfg.Logger().ErrorWithContext(ctx, "[LikeComment] Failed to commit transaction", zap.Error(err))
+			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+		}
+
+		return nil
+	}
+
+	threadActivity := &model.ThreadCommentActivity{
+		ID:              uuid.NewString(),
+		ThreadID:        req.ThreadID,
+		ThreadCommentID: req.CommentID,
+		ActorID:         req.UserID,
+		ActorEmail:      req.UserEmail,
+		ActorUsername:   req.Username,
+		Action:          constants.LIKE_ACTION,
+		CreatedBy:       req.UserEmail,
+	}
+
+	err = s.threadRepo.SaveThreadCommentActivityTx(threadActivity, tx)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[LikeComment] Failed to save thread comment activity", zap.Error(err))
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to save thread comment activity")
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[LikeComment] Failed to commit transaction", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+	}
+
+	return nil
+}
+
+func (s *threadService) likeCommentReply(ctx context.Context, req request.LikeCommentReq) error {
+	//ctx, endFunc := trace.Start(ctx, "ThreadService.likeCommentReply", "service")
+	//defer endFunc()
+
+	lastThreadCommentReplyActivity, err := s.getUserLastThreadCommentReplyAction(ctx, req.ThreadID, req.CommentID, req.UserID)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[likeCommentReply] Failed to get user last thread comment reply action", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+	}
+
+	threadCommentReply, err := s.threadRepo.GetThreadCommentReplyByID(req.CommentID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			s.cfg.Logger().ErrorWithContext(ctx, "[likeCommentReply] Thread comment reply does not exist", zap.Error(err))
+
+			return oops.Code(response.NotFound.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusNotFound).Errorf("Thread comment reply does not exist")
+		}
+
+		s.cfg.Logger().ErrorWithContext(ctx, "[likeCommentReply] Failed to get thread comment reply by id", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to get thread comment reply by id")
+	}
+
+	tx, err := s.db.Begin()
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[likeCommentReply] Failed to begin transaction", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+	}
+
+	// Unlike if previously liked
+	if lastThreadCommentReplyActivity == constants.LIKE_ACTION {
+		err = s.unlikeCommentReply(ctx, req, tx)
+		if err != nil {
+			s.cfg.Logger().ErrorWithContext(ctx, "[likeCommentReply] Failed to unlike comment reply", zap.Error(err))
+			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to unlike comment reply")
+		}
+
+		err = tx.Commit()
+		if err != nil {
+			s.cfg.Logger().ErrorWithContext(ctx, "[likeCommentReply] Failed to commit transaction", zap.Error(err))
+			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+		}
+
+		return nil
+	}
+
+	// Decrement dislike count if previously disliked
+	if lastThreadCommentReplyActivity == constants.DISLIKE_ACTION {
+		err = s.threadRepo.DecrementCommentReplyDislikesCountTx(req.CommentID, tx)
+		if err != nil {
+			s.cfg.Logger().ErrorWithContext(ctx, "[likeCommentReply] Failed to decrement comment reply dislikes count", zap.Error(err))
+
+			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to decrement comment reply dislikes count")
+		}
+	}
+
+	err = s.threadRepo.IncrementCommentReplyLikesCountTx(req.CommentID, tx)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[likeCommentReply] Failed to increment comment reply likes count", zap.Error(err))
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to increment comment reply likes count")
+	}
+
+	if lastThreadCommentReplyActivity != "" {
+
+		updateValues := map[string]interface{}{
+			"action":     constants.LIKE_ACTION,
+			"updated_by": req.UserEmail,
+			"updated_at": time.Now(),
+		}
+
+		err = s.threadRepo.UpdateThreadCommentActivityReplyTx(req.CommentID, req.UserID, updateValues, tx)
+		if err != nil {
+			s.cfg.Logger().ErrorWithContext(ctx, "[likeCommentReply] Failed to update thread comment reply activity", zap.Error(err))
+
+			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update thread comment reply activity")
+		}
+
+		// TODO: Save to thread activity history
+
+		err = tx.Commit()
+		if err != nil {
+			s.cfg.Logger().ErrorWithContext(ctx, "[likeCommentReply] Failed to commit transaction", zap.Error(err))
+			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+		}
+
+		return nil
+	}
+
+	threadActivity := &model.ThreadCommentActivity{
+		ID:                   uuid.NewString(),
+		ThreadID:             req.ThreadID,
+		ThreadCommentID:      threadCommentReply.ThreadCommentID,
+		ThreadCommentReplyID: pkg.ToPointer(req.CommentID),
+		ActorID:              req.UserID,
+		ActorEmail:           req.UserEmail,
+		ActorUsername:        req.Username,
+		Action:               constants.LIKE_ACTION,
+		CreatedBy:            req.UserEmail,
+	}
+
+	err = s.threadRepo.SaveThreadCommentActivityTx(threadActivity, tx)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[likeCommentReply] Failed to save thread comment reply activity", zap.Error(err))
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to save thread comment reply activity")
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[likeCommentReply] Failed to commit transaction", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+	}
+
+	// TODO: Save to thread comment activity history
+
+	return nil
+}
+
+func (s *threadService) unlikeComment(ctx context.Context, req request.LikeCommentReq, tx bun.Tx) error {
+	//ctx, endFunc := trace.Start(ctx, "ThreadService.unlikeComment", "service")
+	//defer endFunc()
+
+	err := s.threadRepo.DecrementCommentLikesCountTx(req.CommentID, tx)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[unlikeComment] Failed to decrement thread comment likes count", zap.Error(err))
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to decrement thread comment likes count")
+	}
+
+	updateValues := map[string]interface{}{
+		"action":     constants.UNLIKE_ACTION,
+		"updated_by": req.UserEmail,
+		"updated_at": time.Now(),
+	}
+
+	err = s.threadRepo.UpdateThreadCommentActivityTx(req.CommentID, req.UserID, updateValues, tx)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[unlikeComment] Failed to update thread comment activity", zap.Error(err))
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update thread comment activity")
+	}
+
+	// TODO: Save to thread comment activity history
+
+	return nil
+}
+
+func (s *threadService) unlikeCommentReply(ctx context.Context, req request.LikeCommentReq, tx bun.Tx) error {
+	//ctx, endFunc := trace.Start(ctx, "ThreadService.unlikeCommentReply", "service")
+	//defer endFunc()
+
+	err := s.threadRepo.DecrementCommentReplyLikesCountTx(req.CommentID, tx)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[unlikeCommentReply] Failed to decrement thread comment reply likes count", zap.Error(err))
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to decrement thread comment reply likes count")
+	}
+
+	updateValues := map[string]interface{}{
+		"action":     constants.UNLIKE_ACTION,
+		"updated_by": req.UserEmail,
+		"updated_at": time.Now(),
+	}
+
+	err = s.threadRepo.UpdateThreadCommentActivityReplyTx(req.CommentID, req.UserID, updateValues, tx)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[unlikeCommentReply] Failed to update thread comment reply activity", zap.Error(err))
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update thread comment reply activity")
+	}
+
+	// TODO: Save to thread comment activity history
+
+	return nil
+}
+
+func (s *threadService) getUserLastThreadCommentAction(ctx context.Context, threadId string, threadCommentId string, userId string) (string, error) {
+	//ctx, endFunc := trace.Start(ctx, "ThreadService.getUserLastThreadCommentAction", "service")
+	//defer endFunc()
+
+	tca, err := s.threadRepo.GetLastThreadCommentActivityByUserID(threadId, threadCommentId, userId)
+
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		s.cfg.Logger().ErrorWithContext(ctx, "[getUserLastThreadCommentAction] Failed to get user last thread comment activity", zap.Error(err))
+		return "", oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to get user last thread comment activity")
+	}
+
+	if tca != nil {
+		return tca.Action, nil
+	}
+
+	return "", nil
+}
+
+func (s *threadService) getUserLastThreadCommentReplyAction(ctx context.Context, threadId string, threadCommentReplyId string, userId string) (string, error) {
+	//ctx, endFunc := trace.Start(ctx, "ThreadService.getUserLastThreadCommentReplyAction", "service")
+	//defer endFunc()
+
+	tca, err := s.threadRepo.GetLastThreadCommentActivityReplyByUserID(threadId, threadCommentReplyId, userId)
+
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		s.cfg.Logger().ErrorWithContext(ctx, "[getUserLastThreadCommentAction] Failed to get user last thread comment reply activity", zap.Error(err))
+		return "", oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to get user last thread comment reply activity")
+	}
+
+	if tca != nil {
+		return tca.Action, nil
+	}
+
+	return "", nil
 }
