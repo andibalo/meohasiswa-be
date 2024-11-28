@@ -63,7 +63,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/api/v1/thread?limit=11&include_user_activity=true",
+							"raw": "{{base_url}}/api/v1/thread?limit=11&_q=love&include_user_activity=true",
 							"host": [
 								"{{base_url}}"
 							],
@@ -99,8 +99,7 @@
 								},
 								{
 									"key": "_q",
-									"value": "love",
-									"disabled": true
+									"value": "love"
 								},
 								{
 									"key": "include_user_activity",
@@ -247,7 +246,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFiZHVsbGFoLmFzZXBAc3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6IjIxNGVlYTc4LTNkZWItNDlkYy1hYjA4LTZlNDk5MjQ4ZjRhZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJmZXNmZXMifQ.jTubuek1mtXlo9bF43f5AJcq8eBoJjeX4M-yJ6H9w6g",
 									"type": "string"
 								}
 							]
@@ -256,7 +255,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"content\": \"this is a comment\"\r\n}",
+							"raw": "{\r\n    \"content\": \"this is a very long comment from asep 2 dwipoamnpdiowandpwanpdioawpidwaipdnwaipdnwpaidnpiwadpinwapnidnwapidwaipdnpwiadnpiwapndiwapindwapindnwaipinpwa\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -398,6 +397,100 @@
 								{
 									"key": "thread_id",
 									"value": "625468c0-0034-4554-a51f-96f8f68aa44e"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Like Comment",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"thread_id\": \"625468c0-0034-4554-a51f-96f8f68aa44e\",\r\n    \"is_reply\" : false\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/thread/comment/like/:comment_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"thread",
+								"comment",
+								"like",
+								":comment_id"
+							],
+							"variable": [
+								{
+									"key": "comment_id",
+									"value": "8dff604c-33a5-4c23-a953-f77fb81eafd6"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Dislike Comment",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"thread_id\": \"625468c0-0034-4554-a51f-96f8f68aa44e\",\r\n    \"is_reply\" : false\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/thread/comment/dislike/:comment_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"thread",
+								"comment",
+								"dislike",
+								":comment_id"
+							],
+							"variable": [
+								{
+									"key": "comment_id",
+									"value": "8dff604c-33a5-4c23-a953-f77fb81eafd6"
 								}
 							]
 						}
@@ -769,7 +862,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/api/v1/university/ratings",
+							"raw": "{{base_url}}/api/v1/university/ratings?_q=binus",
 							"host": [
 								"{{base_url}}"
 							],
@@ -792,8 +885,7 @@
 								},
 								{
 									"key": "_q",
-									"value": "binus",
-									"disabled": true
+									"value": "binus"
 								}
 							]
 						}
@@ -815,7 +907,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"notification_token\": \"ExponentPushToken[vChOFIGDvTtaT4H9FF0_iG]\",\r\n    \"title\": \"test from server\",\r\n    \"content\": \"test body from server\"\r\n}",
+									"raw": "{\r\n    \"notification_tokens\": [\r\n        \"ExponentPushToken[vChOFIGDvTtaT4H9FF0_iG]\"\r\n    ],\r\n    \"title\": \"test from server\",\r\n    \"content\": \"test body from server\",\r\n    \"data\": {\r\n        \"route\": \"/university\"\r\n    }\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -882,7 +974,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"notification_token\": \"ExponentPushToken[vChOFIGDvTtaT4H9FF0_iG]\",\r\n    \"title\": \"test from core service\",\r\n    \"content\": \"test body from server\"\r\n}",
+							"raw": "{\r\n    \"notification_tokens\": [\r\n        \"ExponentPushToken[vChOFIGDvTtaT4H9FF0_iG]\"\r\n    ],\r\n    \"title\": \"test from core service\",\r\n    \"content\": \"test body from server\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -947,7 +1039,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"email\": \"andi.usman@student.umn.ac.id\",\r\n    \"password\": \"test\"\r\n}",
+							"raw": "{\r\n    // \"email\": \"andi.usman@student.umn.ac.id\",\r\n    \"email\": \"abdullah.asep@student.umn.ac.id\",\r\n    \"password\": \"test\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
