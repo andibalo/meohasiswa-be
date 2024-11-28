@@ -48,21 +48,22 @@ type ThreadActivity struct {
 type ThreadComment struct {
 	bun.BaseModel `bun:"table:thread_comment,alias:thc"`
 
-	ID           string       `bun:",pk" json:"id"`
-	UserID       string       `bun:"user_id" json:"user_id"`
-	User         User         `bun:"rel:belongs-to,join:user_id=id" json:"user"`
-	ThreadID     string       `bun:"thread_id" json:"thread_id"`
-	Thread       SubThread    `bun:"rel:belongs-to,join:thread_id=id" json:"thread"`
-	Content      string       `bun:"content" json:"content"`
-	LikeCount    int64        `bun:"like_count" json:"like_count"`
-	DislikeCount int64        `bun:"dislike_count" json:"dislike_count"`
-	ReplyCount   int64        `bun:"reply_count" json:"reply_count"`
-	CreatedBy    string       `bun:"created_by" json:"created_by"`
-	CreatedAt    time.Time    `bun:",nullzero,default:now()" json:"created_at"`
-	UpdatedBy    *string      `json:"updated_by"`
-	UpdatedAt    bun.NullTime `json:"updated_at"`
-	DeletedBy    *string      `json:"-"`
-	DeletedAt    time.Time    `bun:",nullzero,soft_delete" json:"-"`
+	ID           string                `bun:",pk" json:"id"`
+	UserID       string                `bun:"user_id" json:"user_id"`
+	User         User                  `bun:"rel:belongs-to,join:user_id=id" json:"user"`
+	ThreadID     string                `bun:"thread_id" json:"thread_id"`
+	Thread       SubThread             `bun:"rel:belongs-to,join:thread_id=id" json:"thread"`
+	Content      string                `bun:"content" json:"content"`
+	LikeCount    int64                 `bun:"like_count" json:"like_count"`
+	DislikeCount int64                 `bun:"dislike_count" json:"dislike_count"`
+	ReplyCount   int64                 `bun:"reply_count" json:"reply_count"`
+	Replies      []*ThreadCommentReply `bun:"rel:has-many,join:id=thread_comment_id"`
+	CreatedBy    string                `bun:"created_by" json:"created_by"`
+	CreatedAt    time.Time             `bun:",nullzero,default:now()" json:"created_at"`
+	UpdatedBy    *string               `json:"updated_by"`
+	UpdatedAt    bun.NullTime          `json:"updated_at"`
+	DeletedBy    *string               `json:"-"`
+	DeletedAt    time.Time             `bun:",nullzero,soft_delete" json:"-"`
 }
 
 type ThreadCommentActivity struct {

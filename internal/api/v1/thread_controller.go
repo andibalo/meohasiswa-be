@@ -38,6 +38,7 @@ func (h *ThreadController) AddRoutes(r *gin.Engine) {
 	tr.PATCH("/:thread_id", middleware.JwtMiddleware(h.cfg), h.UpdateThread)
 	tr.PATCH("/like/:thread_id", middleware.JwtMiddleware(h.cfg), h.LikeThread)
 	tr.PATCH("/dislike/:thread_id", middleware.JwtMiddleware(h.cfg), h.DislikeThread)
+	tr.GET("/comment/:thread_id", middleware.JwtMiddleware(h.cfg), h.GetThreadComments)
 	tr.POST("/comment/:thread_id", middleware.JwtMiddleware(h.cfg), h.CommentThread)
 	tr.POST("/comment/reply/:comment_id", middleware.JwtMiddleware(h.cfg), h.ReplyComment)
 	tr.PATCH("/comment/like/:comment_id", middleware.JwtMiddleware(h.cfg), h.LikeComment)
@@ -276,6 +277,34 @@ func (h *ThreadController) DislikeThread(c *gin.Context) {
 	}
 
 	httpresp.HttpRespSuccess(c, nil, nil)
+	return
+}
+
+func (h *ThreadController) GetThreadComments(c *gin.Context) {
+	//_, endFunc := trace.Start(c.Copy().Request.Context(), "ThreadController.GetThreadComments", "controller")
+	//defer endFunc()
+
+	claims := middleware.ParseToken(c)
+	if len(claims.Token) == 0 {
+		httpresp.HttpRespError(c, oops.Code(response.Unauthorized.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusUnauthorized).Errorf(apperr.ErrUnauthorized))
+		return
+	}
+
+	var data request.GetThreadCommentsReq
+
+	data.ThreadID = c.Param("thread_id")
+	data.UserID = claims.ID
+	data.UserEmail = claims.Email
+	data.Username = claims.UserName
+
+	resp, err := h.threadSvc.GetThreadComments(c.Request.Context(), data)
+	if err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[GetThreadComments] Failed to get thread comments", zap.Error(err))
+		httpresp.HttpRespError(c, err)
+		return
+	}
+
+	httpresp.HttpRespSuccess(c, resp, nil)
 	return
 }
 

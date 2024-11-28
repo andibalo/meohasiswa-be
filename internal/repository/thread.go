@@ -526,3 +526,28 @@ func (r *threadRepository) GetLastThreadCommentActivityReplyByUserID(threadId st
 
 	return threadCommentActivity, nil
 }
+
+func (r *threadRepository) GetThreadCommentsByThreadID(threadId string) ([]model.ThreadComment, error) {
+	var (
+		threadComments []model.ThreadComment
+	)
+
+	err := r.db.NewSelect().
+		Model(&threadComments).
+		Relation("User", func(q *bun.SelectQuery) *bun.SelectQuery {
+			return q.Column("id", "username")
+		}).
+		Relation("User.University").
+		Relation("Replies.User", func(q *bun.SelectQuery) *bun.SelectQuery {
+			return q.Column("id", "username")
+		}).
+		Relation("Replies.User.University").
+		Where("thread_id = ?", threadId).
+		Scan(context.Background())
+
+	if err != nil {
+		return nil, err
+	}
+
+	return threadComments, nil
+}

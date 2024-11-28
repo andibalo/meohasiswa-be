@@ -1341,3 +1341,79 @@ func (s *threadService) unDislikeCommentReply(ctx context.Context, req request.D
 
 	return nil
 }
+
+func (s *threadService) GetThreadComments(ctx context.Context, req request.GetThreadCommentsReq) (response.GetThreadCommentsResponse, error) {
+	//ctx, endFunc := trace.Start(ctx, "ThreadService.GetThreadComments", "service")
+	//defer endFunc()
+
+	var resp response.GetThreadCommentsResponse
+
+	threadComments, err := s.threadRepo.GetThreadCommentsByThreadID(req.ThreadID)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[GetThreadComments] Failed to get thread comments", zap.Error(err))
+		return resp, err
+	}
+
+	resp.Data = s.mapThreadCommentsData(threadComments)
+
+	return resp, nil
+}
+
+func (s *threadService) mapThreadCommentsData(threadComments []model.ThreadComment) []response.GetThreadCommentsData {
+
+	threadCommentsData := []response.GetThreadCommentsData{}
+
+	for _, tc := range threadComments {
+
+		threadCommentReplies := []response.ThreadCommentReply{}
+
+		tcd := response.GetThreadCommentsData{
+			ID:           tc.ID,
+			ThreadID:     tc.ThreadID,
+			UserID:       tc.UserID,
+			UserName:     tc.User.Username,
+			Content:      tc.Content,
+			LikeCount:    tc.LikeCount,
+			DislikeCount: tc.DislikeCount,
+			CreatedBy:    tc.CreatedBy,
+			CreatedAt:    tc.CreatedAt,
+			UpdatedBy:    tc.UpdatedBy,
+			UpdatedAt:    tc.UpdatedAt,
+		}
+
+		if tc.User.University != nil {
+			tcd.UniversityAbbreviatedName = pkg.ToPointer(tc.User.University.AbbreviatedName)
+			tcd.UniversityImageURL = pkg.ToPointer(tc.User.University.ImageURL)
+		}
+
+		for _, tcr := range tc.Replies {
+			tcrd := response.ThreadCommentReply{
+				ID:              tcr.ID,
+				ThreadID:        tcr.ThreadID,
+				ThreadCommentID: tcr.ThreadCommentID,
+				UserID:          tcr.UserID,
+				UserName:        tcr.User.Username,
+				Content:         tcr.Content,
+				LikeCount:       tcr.LikeCount,
+				DislikeCount:    tcr.DislikeCount,
+				CreatedBy:       tcr.CreatedBy,
+				CreatedAt:       tcr.CreatedAt,
+				UpdatedBy:       tcr.UpdatedBy,
+				UpdatedAt:       tcr.UpdatedAt,
+			}
+
+			if tcr.User.University != nil {
+				tcrd.UniversityAbbreviatedName = pkg.ToPointer(tcr.User.University.AbbreviatedName)
+				tcrd.UniversityImageURL = pkg.ToPointer(tcr.User.University.ImageURL)
+			}
+
+			threadCommentReplies = append(threadCommentReplies, tcrd)
+		}
+
+		tcd.Replies = threadCommentReplies
+
+		threadCommentsData = append(threadCommentsData, tcd)
+	}
+
+	return threadCommentsData
+}

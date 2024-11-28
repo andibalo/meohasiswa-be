@@ -77,3 +77,45 @@ type ThreadComment struct {
 type GetThreadDetailResponse struct {
 	Data ThreadDetailData `json:"thread"`
 }
+
+type GetThreadCommentsData struct {
+	ID                        string               `json:"id"`
+	ThreadID                  string               `json:"thread_id"`
+	UserID                    string               `json:"user_id"`
+	UserName                  string               `json:"username"`
+	UniversityAbbreviatedName *string              `json:"university_abbreviated_name"`
+	UniversityImageURL        *string              `json:"university_image_url"`
+	Content                   string               `json:"content"`
+	LikeCount                 int64                `json:"like_count"`
+	DislikeCount              int64                `json:"dislike_count"`
+	IsLiked                   bool                 `json:"is_liked"`
+	IsDisliked                bool                 `json:"is_disliked"`
+	Replies                   []ThreadCommentReply `json:"replies"`
+	CreatedBy                 string               `json:"created_by"`
+	CreatedAt                 time.Time            `json:"created_at"`
+	UpdatedBy                 *string              `json:"updated_by"`
+	UpdatedAt                 bun.NullTime         `json:"updated_at"`
+}
+
+type ThreadCommentReply struct {
+	ID                        string       `json:"id"`
+	ThreadID                  string       `json:"thread_id"`
+	ThreadCommentID           string       `json:"thread_comment_id"`
+	UserID                    string       `json:"user_id"`
+	UserName                  string       `json:"username"`
+	UniversityAbbreviatedName *string      `json:"university_abbreviated_name"`
+	UniversityImageURL        *string      `json:"university_image_url"`
+	Content                   string       `json:"content"`
+	LikeCount                 int64        `json:"like_count"`
+	DislikeCount              int64        `json:"dislike_count"`
+	IsLiked                   bool         `json:"is_liked"`
+	IsDisliked                bool         `json:"is_disliked"`
+	CreatedBy                 string       `json:"created_by"`
+	CreatedAt                 time.Time    `json:"created_at"`
+	UpdatedBy                 *string      `json:"updated_by"`
+	UpdatedAt                 bun.NullTime `json:"updated_at"`
+}
+
+type GetThreadCommentsResponse struct {
+	Data []GetThreadCommentsData `json:"thread_comments"`
+}
