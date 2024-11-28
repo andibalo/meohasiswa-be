@@ -161,6 +161,7 @@ func (r *threadRepository) UpdateThreadCommentActivityTx(threadCommentID string,
 		TableExpr("thread_comment_activity").
 		Where("thread_comment_id = ?", threadCommentID).
 		Where("actor_id = ?", actorID).
+		Where("thread_comment_reply_id IS NULL").
 		Exec(context.Background())
 	if err != nil {
 		return err
@@ -497,7 +498,7 @@ func (r *threadRepository) GetLastThreadCommentActivityByUserID(threadId string,
 
 	err := r.db.NewSelect().
 		Model(threadCommentActivity).
-		Where("thread_id = ? AND thread_comment_id = ? AND actor_id = ?", threadId, commentId, userId).
+		Where("thread_id = ? AND thread_comment_id = ? AND actor_id = ? AND thread_comment_reply_id IS NULL", threadId, commentId, userId).
 		Order("created_at desc").
 		Limit(1).
 		Scan(context.Background())

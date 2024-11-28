@@ -391,14 +391,20 @@ func (h *ThreadController) DislikeComment(c *gin.Context) {
 		return
 	}
 
-	var data request.DislikeThreadReq
+	var data request.DislikeCommentReq
 
-	data.ThreadID = c.Param("thread_id")
+	if err := c.ShouldBindJSON(&data); err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[DislikeCommentReq] Failed to bind json", zap.Error(err))
+		httpresp.HttpRespError(c, oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf(apperr.ErrBadRequest))
+		return
+	}
+
+	data.CommentID = c.Param("comment_id")
 	data.UserID = claims.ID
 	data.UserEmail = claims.Email
 	data.Username = claims.UserName
 
-	err := h.threadSvc.DislikeThread(c.Request.Context(), data)
+	err := h.threadSvc.DislikeComment(c.Request.Context(), data)
 	if err != nil {
 		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[DislikeComment] Failed to dislike comment", zap.Error(err))
 		httpresp.HttpRespError(c, err)
