@@ -1348,7 +1348,7 @@ func (s *threadService) GetThreadComments(ctx context.Context, req request.GetTh
 
 	var resp response.GetThreadCommentsResponse
 
-	threadComments, err := s.threadRepo.GetThreadCommentsByThreadID(req.ThreadID)
+	threadComments, err := s.threadRepo.GetThreadCommentsByThreadID(req.ThreadID, req.UserID)
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[GetThreadComments] Failed to get thread comments", zap.Error(err))
 		return resp, err
@@ -1386,6 +1386,16 @@ func (s *threadService) mapThreadCommentsData(threadComments []model.ThreadComme
 			tcd.UniversityImageURL = pkg.ToPointer(tc.User.University.ImageURL)
 		}
 
+		if tc.CommentAction != "" {
+			if tc.CommentAction == constants.LIKE_ACTION {
+				tcd.IsLiked = true
+			}
+
+			if tc.CommentAction == constants.DISLIKE_ACTION {
+				tcd.IsDisliked = true
+			}
+		}
+
 		for _, tcr := range tc.Replies {
 			tcrd := response.ThreadCommentReply{
 				ID:              tcr.ID,
@@ -1405,6 +1415,16 @@ func (s *threadService) mapThreadCommentsData(threadComments []model.ThreadComme
 			if tcr.User.University != nil {
 				tcrd.UniversityAbbreviatedName = pkg.ToPointer(tcr.User.University.AbbreviatedName)
 				tcrd.UniversityImageURL = pkg.ToPointer(tcr.User.University.ImageURL)
+			}
+
+			if tcr.CommentReplyAction != "" {
+				if tcr.CommentReplyAction == constants.LIKE_ACTION {
+					tcrd.IsLiked = true
+				}
+
+				if tcr.CommentReplyAction == constants.DISLIKE_ACTION {
+					tcrd.IsDisliked = true
+				}
 			}
 
 			threadCommentReplies = append(threadCommentReplies, tcrd)

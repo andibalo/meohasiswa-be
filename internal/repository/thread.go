@@ -527,22 +527,35 @@ func (r *threadRepository) GetLastThreadCommentActivityReplyByUserID(threadId st
 	return threadCommentActivity, nil
 }
 
-func (r *threadRepository) GetThreadCommentsByThreadID(threadId string) ([]model.ThreadComment, error) {
+func (r *threadRepository) GetThreadCommentsByThreadID(threadId string, userId string) ([]model.ThreadComment, error) {
 	var (
 		threadComments []model.ThreadComment
 	)
 
 	err := r.db.NewSelect().
+		Column("thc.*").
+		ColumnExpr("tca.action as comment_action").
 		Model(&threadComments).
+		Join("LEFT JOIN thread_comment_activity AS tca ON tca.thread_comment_id = thc.id AND tca.actor_id = ? AND tca.thread_comment_reply_id IS NULL", userId).
 		Relation("User", func(q *bun.SelectQuery) *bun.SelectQuery {
 			return q.Column("id", "username")
 		}).
-		Relation("User.University").
+		Relation("User.University", func(q *bun.SelectQuery) *bun.SelectQuery {
+			return q.Column("id", "name", "abbreviated_name", "image_url")
+		}).
+		Relation("Replies", func(q *bun.SelectQuery) *bun.SelectQuery {
+			return q.ColumnExpr("thcr.*, tca.action as comment_reply_action").
+				Join("LEFT JOIN thread_comment_activity AS tca ON tca.thread_comment_reply_id = thcr.id AND tca.actor_id = ?", userId).
+				Order("thcr.created_at desc")
+		}).
 		Relation("Replies.User", func(q *bun.SelectQuery) *bun.SelectQuery {
 			return q.Column("id", "username")
 		}).
-		Relation("Replies.User.University").
-		Where("thread_id = ?", threadId).
+		Relation("Replies.User.University", func(q *bun.SelectQuery) *bun.SelectQuery {
+			return q.Column("id", "name", "abbreviated_name", "image_url")
+		}).
+		Where("thc.thread_id = ?", threadId).
+		Order("thc.created_at desc").
 		Scan(context.Background())
 
 	if err != nil {

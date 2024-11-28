@@ -51,7 +51,7 @@ type ThreadRepository interface {
 	GetLastThreadActivityByUserID(threadId string, userId string) (*model.ThreadActivity, error)
 	GetLastThreadCommentActivityByUserID(threadId string, commentId string, userId string) (*model.ThreadCommentActivity, error)
 	GetLastThreadCommentActivityReplyByUserID(threadId string, commentReplyId string, userId string) (*model.ThreadCommentActivity, error)
-	GetThreadCommentsByThreadID(threadId string) ([]model.ThreadComment, error)
+	GetThreadCommentsByThreadID(threadId string, userId string) ([]model.ThreadComment, error)
 	SaveThreadActivity(threadActivity *model.ThreadActivity) error
 	SaveThreadActivityTx(threadActivity *model.ThreadActivity, tx bun.Tx) error
 	UpdateThreadActivityTx(threadActivityID string, actorID string, updateValues map[string]interface{}, tx bun.Tx) error
