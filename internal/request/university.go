@@ -25,3 +25,11 @@ type GetUniversityRatingListReq struct {
 	UserID    string `json:"-"`
 	UserEmail string `json:"-"`
 }
+
+type GetUniversityRatingDetailReq struct {
+	UniversityRatingID string `json:"university_rating_id"`
+
+	UserID    string `json:"-"`
+	Username  string `json:"-"`
+	UserEmail string `json:"-"`
+}

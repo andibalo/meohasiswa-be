@@ -61,7 +61,7 @@ func NewServer(cfg config.Config, tracer *trace.Tracer, db *bun.DB, s3Client *s3
 	imageSvc := service.NewImageService(cfg, s3Repo)
 	universitySvc := service.NewUniversityService(cfg, universityRepo, userRepo, db)
 	authSvc := service.NewAuthService(cfg, userRepo, db, brevoSvc)
-	userSvc := service.NewUserService(cfg, userRepo)
+	userSvc := service.NewUserService(cfg, userRepo, universityRepo)
 	subThreadSvc := service.NewSubThreadService(cfg, subThreadRepo, db)
 	threadSvc := service.NewThreadService(cfg, threadRepo, userRepo, notifCl, db)
 

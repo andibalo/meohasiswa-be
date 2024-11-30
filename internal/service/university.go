@@ -239,3 +239,74 @@ func (s *universityService) mapUniversityRatingListData(uniRatings []model.Unive
 
 	return uniRatingData
 }
+
+func (s *universityService) GetUniversityRatingDetail(ctx context.Context, req request.GetUniversityRatingDetailReq) (response.UniversityRatingDetailData, error) {
+	//ctx, endFunc := trace.Start(ctx, "UniversityService.GetUniversityRatingDetail", "service")
+	//defer endFunc()
+
+	var resp response.UniversityRatingDetailData
+
+	uniRating, err := s.universityRepo.GetUniversityRatingByID(req.UniversityRatingID)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			s.cfg.Logger().ErrorWithContext(ctx, "[GetUniversityRatingDetail] University rating does not exist", zap.Error(err))
+
+			return resp, oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("University rating does not exist")
+		}
+
+		s.cfg.Logger().ErrorWithContext(ctx, "[GetUniversityRatingDetail] Failed to get university rating detail", zap.Error(err))
+
+		return resp, oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to get university rating detail")
+	}
+
+	resp = s.mapUniversityRatingDetailData(uniRating)
+
+	return resp, nil
+}
+
+func (s *universityService) mapUniversityRatingDetailData(uniRating model.UniversityRating) response.UniversityRatingDetailData {
+
+	uniRatingPros := []string{}
+	uniRatingCons := []string{}
+
+	urd := response.UniversityRatingDetailData{
+		ID:                        uniRating.ID,
+		UserID:                    uniRating.UserID,
+		UserName:                  uniRating.User.Username,
+		UniversityID:              uniRating.UniversityID,
+		UniversityName:            uniRating.University.Name,
+		UniversityAbbreviatedName: uniRating.University.AbbreviatedName,
+		UniversityImageURL:        uniRating.University.ImageURL,
+		UniversityMajor:           uniRating.UniversityMajor,
+		Title:                     uniRating.Title,
+		Content:                   uniRating.Content,
+		FacilityRating:            uniRating.FacilityRating,
+		StudentOrganizationRating: uniRating.StudentOrganizationRating,
+		SocialEnvironmentRating:   uniRating.SocialEnvironmentRating,
+		EducationQualityRating:    uniRating.EducationQualityRating,
+		PriceToValueRating:        uniRating.PriceToValueRating,
+		OverallRating:             uniRating.OverallRating,
+		CreatedBy:                 uniRating.CreatedBy,
+		CreatedAt:                 uniRating.CreatedAt,
+		UpdatedBy:                 uniRating.UpdatedBy,
+		UpdatedAt:                 uniRating.UpdatedAt,
+	}
+
+	for _, urp := range uniRating.UniversityRatingPoints {
+		if urp.Type == constants.UNI_RATING_PRO {
+			uniRatingPros = append(uniRatingPros, urp.Content)
+			continue
+		}
+
+		if urp.Type == constants.UNI_RATING_CON {
+			uniRatingCons = append(uniRatingCons, urp.Content)
+			continue
+		}
+	}
+
+	urd.Pros = uniRatingPros
+	urd.Cons = uniRatingCons
+
+	return urd
+}

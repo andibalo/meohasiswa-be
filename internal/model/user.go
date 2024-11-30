@@ -8,23 +8,24 @@ import (
 type User struct {
 	bun.BaseModel `bun:"table:user,alias:u"`
 
-	ID                string       `bun:",pk" json:"id"`
-	Username          string       `bun:"username" json:"username"`
-	Email             string       `bun:"email" json:"email"`
-	Password          string       `bun:"password" json:"password"`
-	Role              string       `bun:"role" json:"role"`
-	UniversityID      *string      `bun:"university_id" json:"university_id"`
-	University        *University  `bun:"rel:belongs-to,join:university_id=id" json:"university"`
-	IsBanned          bool         `bun:"is_banned" json:"is_banned"`
-	IsEmailVerified   bool         `bun:"is_email_verified" json:"is_email_verified"`
-	HasRateUniversity bool         `bun:"has_rate_university" json:"has_rate_university"`
-	ReputationPoints  int64        `bun:"reputation_points" json:"reputation_points"`
-	CreatedBy         string       `bun:"created_by" json:"created_by"`
-	CreatedAt         time.Time    `bun:",nullzero,default:now()" json:"created_at"`
-	UpdatedBy         *string      `json:"updated_by"`
-	UpdatedAt         bun.NullTime `json:"updated_at"`
-	DeletedBy         *string      `json:"-"`
-	DeletedAt         time.Time    `bun:",nullzero,soft_delete" json:"-"`
+	ID                 string       `bun:",pk" json:"id"`
+	Username           string       `bun:"username" json:"username"`
+	Email              string       `bun:"email" json:"email"`
+	Password           string       `bun:"password" json:"password"`
+	Role               string       `bun:"role" json:"role"`
+	UniversityID       *string      `bun:"university_id" json:"university_id"`
+	University         *University  `bun:"rel:belongs-to,join:university_id=id" json:"university"`
+	IsBanned           bool         `bun:"is_banned" json:"is_banned"`
+	IsEmailVerified    bool         `bun:"is_email_verified" json:"is_email_verified"`
+	HasRateUniversity  bool         `bun:"has_rate_university" json:"has_rate_university"`
+	ReputationPoints   int64        `bun:"reputation_points" json:"reputation_points"`
+	UniversityRatingID *string      `bun:"-" json:"university_rating_id"`
+	CreatedBy          string       `bun:"created_by" json:"created_by"`
+	CreatedAt          time.Time    `bun:",nullzero,default:now()" json:"created_at"`
+	UpdatedBy          *string      `json:"updated_by"`
+	UpdatedAt          bun.NullTime `json:"updated_at"`
+	DeletedBy          *string      `json:"-"`
+	DeletedAt          time.Time    `bun:",nullzero,soft_delete" json:"-"`
 }
 
 type UserVerifyEmail struct {

@@ -32,6 +32,7 @@ func (h *UniversityController) AddRoutes(r *gin.Engine) {
 	ur := r.Group("/api/v1/university")
 
 	ur.GET("/ratings", middleware.JwtMiddleware(h.cfg), h.GetUniversityRatingList)
+	ur.GET("/rating/:rating_id", middleware.JwtMiddleware(h.cfg), h.GetUniversityRatingDetail)
 	ur.POST("/rate/:university_id", middleware.JwtMiddleware(h.cfg), h.RateUniversity)
 }
 
@@ -63,6 +64,35 @@ func (h *UniversityController) GetUniversityRatingList(c *gin.Context) {
 	resp, err := h.universitySvc.GetUniversityRatingList(c.Request.Context(), data)
 	if err != nil {
 		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[GetUniversityRatingList] Failed to get university rating list", zap.Error(err))
+		httpresp.HttpRespError(c, err)
+		return
+	}
+
+	httpresp.HttpRespSuccess(c, resp, nil)
+	return
+}
+
+func (h *UniversityController) GetUniversityRatingDetail(c *gin.Context) {
+	//_, endFunc := trace.Start(c.Copy().Request.Context(), "UniversityController.GetUniversityRatingDetail", "controller")
+	//defer endFunc()
+
+	claims := middleware.ParseToken(c)
+	if len(claims.Token) == 0 {
+		httpresp.HttpRespError(c, oops.Code(response.Unauthorized.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusUnauthorized).Errorf(apperr.ErrUnauthorized))
+		return
+	}
+
+	var data request.GetUniversityRatingDetailReq
+
+	data.UniversityRatingID = c.Param("rating_id")
+
+	data.UserID = claims.ID
+	data.UserEmail = claims.Email
+	data.Username = claims.UserName
+
+	resp, err := h.universitySvc.GetUniversityRatingDetail(c.Request.Context(), data)
+	if err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[GetUniversityRatingDetail] Failed to get university rating detail", zap.Error(err))
 		httpresp.HttpRespError(c, err)
 		return
 	}

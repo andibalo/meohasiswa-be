@@ -21,6 +21,32 @@ func NewUniversityRepository(db *bun.DB) UniversityRepository {
 	}
 }
 
+func (r *universityRepository) GetUniversityRatingByID(id string) (model.UniversityRating, error) {
+
+	var (
+		uniRating model.UniversityRating
+	)
+
+	err := r.db.NewSelect().
+		Column("unir.*").
+		Model(&uniRating).
+		Relation("User", func(q *bun.SelectQuery) *bun.SelectQuery {
+			return q.Column("id", "username")
+		}).
+		Relation("University", func(q *bun.SelectQuery) *bun.SelectQuery {
+			return q.Column("id", "name", "abbreviated_name", "image_url")
+		}).
+		Relation("UniversityRatingPoints").
+		Where("unir.id = ?", id).
+		Scan(context.Background())
+
+	if err != nil {
+		return uniRating, err
+	}
+
+	return uniRating, nil
+}
+
 func (r *universityRepository) GetList(req request.GetUniversityRatingListReq) ([]model.UniversityRating, pkg.Pagination, error) {
 
 	var (
@@ -96,7 +122,16 @@ func (r *universityRepository) Save(university *model.University) error {
 func (r *universityRepository) GetUniversityRatingByUserIDAndUniversityID(userID string, universityID string) (*model.UniversityRating, error) {
 	universityRating := &model.UniversityRating{}
 
-	err := r.db.NewSelect().Model(universityRating).Where("user_id = ? AND university_id = ?", userID, universityID).Scan(context.Background())
+	err := r.db.NewSelect().Model(universityRating).
+		Relation("User", func(q *bun.SelectQuery) *bun.SelectQuery {
+			return q.Column("id", "username")
+		}).
+		Relation("University", func(q *bun.SelectQuery) *bun.SelectQuery {
+			return q.Column("id", "name", "abbreviated_name", "image_url")
+		}).
+		Relation("UniversityRatingPoints").
+		Where("unir.user_id = ? AND unir.university_id = ?", userID, universityID).
+		Scan(context.Background())
 	if err != nil {
 		return universityRating, err
 	}

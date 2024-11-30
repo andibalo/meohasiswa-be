@@ -21,13 +21,15 @@ import (
 type userService struct {
 	cfg      config.Config
 	userRepo repository.UserRepository
+	uniRepo  repository.UniversityRepository
 }
 
-func NewUserService(cfg config.Config, userRepo repository.UserRepository) UserService {
+func NewUserService(cfg config.Config, userRepo repository.UserRepository, uniRepo repository.UniversityRepository) UserService {
 
 	return &userService{
 		cfg:      cfg,
 		userRepo: userRepo,
+		uniRepo:  uniRepo,
 	}
 }
 
@@ -45,6 +47,17 @@ func (s *userService) GetUserProfile(ctx context.Context, req request.GetUserPro
 
 		s.cfg.Logger().ErrorWithContext(ctx, "[GetUserProfile] Failed to get user profile", zap.Error(err))
 		return nil, oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to get user profile")
+	}
+
+	if user.UniversityID != nil && user.HasRateUniversity {
+		unir, err := s.uniRepo.GetUniversityRatingByUserIDAndUniversityID(req.UserID, *user.UniversityID)
+
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			s.cfg.Logger().ErrorWithContext(ctx, "[GetUserProfile] Failed to get user university rating", zap.Error(err))
+			return nil, oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to get user university rating")
+		}
+
+		user.UniversityRatingID = &unir.ID
 	}
 
 	return user, nil
