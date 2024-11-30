@@ -107,7 +107,7 @@ func (s *authService) Register(ctx context.Context, req request.RegisterUserReq)
 			Subject:    mailer.SEND_VERIFICATION_CODE_EMAIL_SUBJECT,
 			TemplateID: s.cfg.GetBrevoSvcCfg().SendVerificationCodeTemplateId,
 			Data: map[string]interface{}{
-				"code": pkg.GenRandNumber(6),
+				"code": userVerifyEmail.Code,
 			},
 		})
 
