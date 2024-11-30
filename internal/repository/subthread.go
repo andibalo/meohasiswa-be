@@ -24,7 +24,7 @@ func NewSubThreadRepository(db *bun.DB) SubThreadRepository {
 func (r *subThreadRepository) GetList(req request.GetSubThreadListReq) ([]model.SubThread, pkg.Pagination, error) {
 
 	var (
-		subThreads []model.SubThread
+		subThreads = []model.SubThread{}
 		nextCursor string
 	)
 
