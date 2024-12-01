@@ -63,7 +63,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/api/v1/thread?limit=11&_q=love&include_user_activity=true",
+							"raw": "{{base_url}}/api/v1/thread?cursor=2024-11-08T11:46:15.96Z_49f1a8d5-8391-40b4-9b06-be39b0d38376&limit=3&is_user_following=true&include_user_activity=true",
 							"host": [
 								"{{base_url}}"
 							],
@@ -75,12 +75,11 @@
 							"query": [
 								{
 									"key": "cursor",
-									"value": "0.02_3940cf54-4ae3-47ee-b8e6-e344206e6d9a",
-									"disabled": true
+									"value": "2024-11-08T11:46:15.96Z_49f1a8d5-8391-40b4-9b06-be39b0d38376"
 								},
 								{
 									"key": "limit",
-									"value": "11"
+									"value": "3"
 								},
 								{
 									"key": "user_id",
@@ -89,8 +88,7 @@
 								},
 								{
 									"key": "is_user_following",
-									"value": "true",
-									"disabled": true
+									"value": "true"
 								},
 								{
 									"key": "is_trending",
@@ -99,7 +97,8 @@
 								},
 								{
 									"key": "_q",
-									"value": "love"
+									"value": "love",
+									"disabled": true
 								},
 								{
 									"key": "include_user_activity",
@@ -239,6 +238,52 @@
 					"response": []
 				},
 				{
+					"name": "Update Thread Comment",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"content\": \"this is a comment from asep update\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/thread/comment/:comment_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"thread",
+								"comment",
+								":comment_id"
+							],
+							"variable": [
+								{
+									"key": "comment_id",
+									"value": "3319aa33-7363-489e-8f62-ec8c36f52aac"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Comment Thread",
 					"request": {
 						"auth": {
@@ -361,6 +406,43 @@
 								{
 									"key": "thread_id",
 									"value": "b1887735-1d89-48bf-8289-a60454bd8154"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Thread Comment",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/thread/comment/:comment_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"thread",
+								"comment",
+								":comment_id"
+							],
+							"variable": [
+								{
+									"key": "comment_id",
+									"value": "5e600549-c8ff-42da-9574-f5b0c4a87da4"
 								}
 							]
 						}
@@ -496,6 +578,43 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Get Thread Comments",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/thread/comment/:thread_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"thread",
+								"comment",
+								":thread_id"
+							],
+							"variable": [
+								{
+									"key": "thread_id",
+									"value": "625468c0-0034-4554-a51f-96f8f68aa44e"
+								}
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -518,7 +637,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/api/v1/subthread?is_following=true",
+							"raw": "{{base_url}}/api/v1/subthread?is_following=true&_q=test",
 							"host": [
 								"{{base_url}}"
 							],
@@ -544,8 +663,7 @@
 								},
 								{
 									"key": "_q",
-									"value": "umn",
-									"disabled": true
+									"value": "test"
 								},
 								{
 									"key": "include_university_subthread",
@@ -808,7 +926,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3Q0QHN0dWRlbnQudW1uLmFjLmlkIiwiaWQiOiIyZmM5ZTVhNS0xYjdlLTQ0NzktOWFjMC00NTQ0ODBlNDQ3OTgiLCJyb2xlIjoiVVNFUiIsInVzZXJuYW1lIjoidGVzdDQifQ.Vl_MWUV5h4OSaFoj7Ux1lSa7ahJW7lAsb5VVznzJXpI",
 									"type": "string"
 								}
 							]
@@ -817,7 +935,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"title\": \"Great University Experience\",\r\n    \"content\": \"This university provides an excellent balance between academics and social life. The facilities are top-notch, and there are numerous student organizations to join.\",\r\n    \"facility_rating\": 5,\r\n    \"student_organization_rating\": 4,\r\n    \"university_major\": \"Informatika\",\r\n    \"social_environment_rating\": 5,\r\n    \"education_quality_rating\": 4,\r\n    \"price_to_value_rating\": 3,\r\n    \"pros\": [\r\n        \"Modern facilities\",\r\n        \"Active student organizations\",\r\n        \"Diverse social environment\"\r\n    ],\r\n    \"cons\": [\r\n        \"High tuition fees\",\r\n        \"Limited parking spaces\"\r\n    ]\r\n}",
+							"raw": "{\r\n    \"title\": \"Great University Experience\",\r\n    \"content\": \"This university provides an excellent balance between academics and social life. The facilities are top-notch, and there are numerous student organizations to join.\",\r\n    \"facility_rating\": 5,\r\n    \"student_organization_rating\": 4,\r\n    \"university_major\": \"Psikologi\",\r\n    \"social_environment_rating\": 5,\r\n    \"education_quality_rating\": 4,\r\n    \"price_to_value_rating\": 3,\r\n    \"pros\": [\r\n        \"Modern facilities\",\r\n        \"Active student organizations\",\r\n        \"Diverse social environment\"\r\n    ],\r\n    \"cons\": [\r\n        \"High tuition fees\",\r\n        \"Limited parking spaces\"\r\n    ]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -847,6 +965,52 @@
 					"response": []
 				},
 				{
+					"name": "Update University Rating",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"university_id\": \"9a9e7fe0-37c9-40dc-bdb3-5a50adf35eaf\",\r\n    \"title\": \"Great University Experience Update 2\",\r\n    \"content\": \"This university provides an excellent balance between academics and social life. The facilities are top-notch, and there are numerous student organizations to join.\",\r\n    \"facility_rating\": 3,\r\n    \"student_organization_rating\": 4,\r\n    \"university_major\": \"Informatika\",\r\n    \"social_environment_rating\": 2,\r\n    \"education_quality_rating\": 2,\r\n    \"price_to_value_rating\": 1,\r\n    \"pros\": [\r\n        \"Modern facilities Update\",\r\n        \"Active student organizations Update\",\r\n        \"Diverse social environment Update\"\r\n    ],\r\n    \"cons\": [\r\n        \"High tuition fees Update\",\r\n        \"Limited parking spaces\"\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/university/rating/:rating_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"university",
+								"rating",
+								":rating_id"
+							],
+							"variable": [
+								{
+									"key": "rating_id",
+									"value": "396b3f08-bd8c-46b0-98c2-e9207c35d9c3"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Get University Rating List",
 					"request": {
 						"auth": {
@@ -862,7 +1026,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/api/v1/university/ratings?_q=binus",
+							"raw": "{{base_url}}/api/v1/university/ratings",
 							"host": [
 								"{{base_url}}"
 							],
@@ -885,7 +1049,45 @@
 								},
 								{
 									"key": "_q",
-									"value": "binus"
+									"value": "binus",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get University Rating Detail",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/university/rating/:rating_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"university",
+								"rating",
+								":rating_id"
+							],
+							"variable": [
+								{
+									"key": "rating_id",
+									"value": "396b3f08-bd8c-46b0-98c2-e9207c35d9c3"
 								}
 							]
 						}
@@ -1039,7 +1241,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    // \"email\": \"andi.usman@student.umn.ac.id\",\r\n    \"email\": \"abdullah.asep@student.umn.ac.id\",\r\n    \"password\": \"test\"\r\n}",
+							"raw": "{\r\n    // \"email\": \"andi.usman@student.umn.ac.id\",\r\n    \"email\": \"test4@student.umn.ac.id\",\r\n    \"password\": \"test\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
