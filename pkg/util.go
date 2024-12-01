@@ -1,6 +1,7 @@
 package pkg
 
 import (
+	"fmt"
 	"golang.org/x/crypto/bcrypt"
 	"math"
 	"math/rand"
@@ -66,4 +67,27 @@ func TruncateWithEllipsis(s string, maxLength int) string {
 		return string(runes[:maxLength]) + "..."
 	}
 	return s
+}
+
+func ExtractDomainFromEmail(email string) (string, error) {
+	parts := strings.Split(email, "@")
+	if len(parts) != 2 {
+		return "", fmt.Errorf("invalid email address: %s", email)
+	}
+
+	domain := parts[1]
+
+	domainParts := strings.Split(domain, ".")
+	if len(domainParts) < 2 {
+		return "", fmt.Errorf("invalid domain in email: %s", email)
+	}
+
+	var mainDomain string
+	if len(domainParts) > 2 && len(domainParts[len(domainParts)-2]) <= 3 {
+		mainDomain = strings.Join(domainParts[len(domainParts)-3:], ".")
+	} else {
+		mainDomain = strings.Join(domainParts[len(domainParts)-2:], ".")
+	}
+
+	return mainDomain, nil
 }

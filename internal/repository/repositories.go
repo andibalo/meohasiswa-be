@@ -82,6 +82,7 @@ type ThreadRepository interface {
 }
 
 type UniversityRepository interface {
+	GetByDomain(domain string) (model.University, error)
 	GetUniversityRatingByID(id string) (model.UniversityRating, error)
 	GetList(req request.GetUniversityRatingListReq) ([]model.UniversityRating, pkg.Pagination, error)
 	GetUniversityRatingByUserIDAndUniversityID(userID string, universityID string) (*model.UniversityRating, error)

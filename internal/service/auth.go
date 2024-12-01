@@ -25,15 +25,17 @@ import (
 type authService struct {
 	cfg       config.Config
 	userRepo  repository.UserRepository
+	uniRepo   repository.UniversityRepository
 	db        *bun.DB
 	mailerSvc mailer.MailService
 }
 
-func NewAuthService(cfg config.Config, userRepo repository.UserRepository, db *bun.DB, mailerSvc mailer.MailService) AuthService {
+func NewAuthService(cfg config.Config, userRepo repository.UserRepository, uniRepo repository.UniversityRepository, db *bun.DB, mailerSvc mailer.MailService) AuthService {
 
 	return &authService{
 		cfg:       cfg,
 		userRepo:  userRepo,
+		uniRepo:   uniRepo,
 		db:        db,
 		mailerSvc: mailerSvc,
 	}
@@ -58,6 +60,26 @@ func (s *authService) Register(ctx context.Context, req request.RegisterUserReq)
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[Register] Failed to map payload to user model", zap.Error(err))
 		return oops.Wrapf(err, "[Register] Failed to map payload to user model")
+	}
+
+	emailDomain, err := pkg.ExtractDomainFromEmail(req.Email)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[Register] Failed to extract domain from email", zap.Error(err))
+		return oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("Failed to extract domain from email")
+	}
+
+	uni, err := s.uniRepo.GetByDomain(emailDomain)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		s.cfg.Logger().ErrorWithContext(ctx, "[Register] Failed to get university by domain", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to get university by domain")
+	}
+
+	if uni.ID == "" {
+		s.cfg.Logger().WarnWithContext(ctx, "[Register] Could not detect any university from email")
+	}
+
+	if uni.ID != "" {
+		user.UniversityID = pkg.ToPointer(uni.ID)
 	}
 
 	tx, err := s.db.Begin()

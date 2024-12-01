@@ -21,6 +21,24 @@ func NewUniversityRepository(db *bun.DB) UniversityRepository {
 	}
 }
 
+func (r *universityRepository) GetByDomain(domain string) (model.University, error) {
+
+	var (
+		uni model.University
+	)
+
+	err := r.db.NewSelect().
+		Model(&uni).
+		Where("uni.domain_name = ?", domain).
+		Scan(context.Background())
+
+	if err != nil {
+		return uni, err
+	}
+
+	return uni, nil
+}
+
 func (r *universityRepository) GetUniversityRatingByID(id string) (model.UniversityRating, error) {
 
 	var (

@@ -1,9 +1,13 @@
 CREATE TABLE university (
     id UUID PRIMARY KEY NOT NULL,
     name VARCHAR(255) NOT NULL,
-    abbreviated_name VARCHAR(100) NOT NULL,
+    abbreviated_name VARCHAR(100),
+    accreditation VARCHAR(100) NOT NULL,
+    type VARCHAR(100) NOT NULL,
     image_url VARCHAR(255) NOT NULL,
-    domain_name VARCHAR(255) NOT NULL,
+    domain_name VARCHAR(100) NOT NULL,
+    province VARCHAR(255),
+    regency_city VARCHAR(255),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     created_by VARCHAR(100) NOT NULL,
     updated_at TIMESTAMPTZ,
@@ -12,6 +16,7 @@ CREATE TABLE university (
     deleted_by VARCHAR(100)
 );
 
+CREATE INDEX IF NOT EXISTS university_domain_name_index ON "university"(domain_name);
 
 CREATE TABLE "user" (
     id UUID PRIMARY KEY NOT NULL,
