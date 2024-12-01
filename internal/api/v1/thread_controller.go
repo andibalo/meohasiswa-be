@@ -43,6 +43,8 @@ func (h *ThreadController) AddRoutes(r *gin.Engine) {
 	tr.DELETE("/comment/:comment_id", middleware.JwtMiddleware(h.cfg), h.DeleteThreadComment)
 	tr.PATCH("/comment/:comment_id", middleware.JwtMiddleware(h.cfg), h.UpdateThreadComment)
 	tr.POST("/comment/reply/:comment_id", middleware.JwtMiddleware(h.cfg), h.ReplyComment)
+	tr.DELETE("/comment/reply/:comment_id", middleware.JwtMiddleware(h.cfg), h.DeleteThreadCommentReply)
+	tr.PATCH("/comment/reply/:comment_id", middleware.JwtMiddleware(h.cfg), h.UpdateThreadCommentReply)
 	tr.PATCH("/comment/like/:comment_id", middleware.JwtMiddleware(h.cfg), h.LikeComment)
 	tr.PATCH("/comment/dislike/:comment_id", middleware.JwtMiddleware(h.cfg), h.DislikeComment)
 }
@@ -499,6 +501,67 @@ func (h *ThreadController) DeleteThreadComment(c *gin.Context) {
 	err := h.threadSvc.DeleteThreadComment(c.Request.Context(), data)
 	if err != nil {
 		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[DeleteThreadComment] Failed to delete thread comment by id", zap.Error(err))
+		httpresp.HttpRespError(c, err)
+		return
+	}
+
+	httpresp.HttpRespSuccess(c, nil, nil)
+	return
+}
+
+func (h *ThreadController) DeleteThreadCommentReply(c *gin.Context) {
+	//_, endFunc := trace.Start(c.Copy().Request.Context(), "ThreadController.DeleteThreadCommentReply", "controller")
+	//defer endFunc()
+
+	claims := middleware.ParseToken(c)
+	if len(claims.Token) == 0 {
+		httpresp.HttpRespError(c, oops.Code(response.Unauthorized.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusUnauthorized).Errorf(apperr.ErrUnauthorized))
+		return
+	}
+
+	var data request.DeleteThreadCommentReplyReq
+
+	data.CommentID = c.Param("comment_id")
+	data.UserID = claims.ID
+	data.UserEmail = claims.Email
+	data.Username = claims.UserName
+
+	err := h.threadSvc.DeleteThreadCommentReply(c.Request.Context(), data)
+	if err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[DeleteThreadCommentReply] Failed to delete thread comment reply by id", zap.Error(err))
+		httpresp.HttpRespError(c, err)
+		return
+	}
+
+	httpresp.HttpRespSuccess(c, nil, nil)
+	return
+}
+
+func (h *ThreadController) UpdateThreadCommentReply(c *gin.Context) {
+	//_, endFunc := trace.Start(c.Copy().Request.Context(), "ThreadController.UpdateThreadCommentReply", "controller")
+	//defer endFunc()
+
+	claims := middleware.ParseToken(c)
+	if len(claims.Token) == 0 {
+		httpresp.HttpRespError(c, oops.Code(response.Unauthorized.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusUnauthorized).Errorf(apperr.ErrUnauthorized))
+		return
+	}
+
+	var data request.UpdateThreadCommentReplyReq
+	if err := c.ShouldBindJSON(&data); err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[UpdateThreadCommentReply] Failed to bind json", zap.Error(err))
+		httpresp.HttpRespError(c, oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf(apperr.ErrBadRequest))
+		return
+	}
+
+	data.CommentID = c.Param("comment_id")
+	data.UserID = claims.ID
+	data.UserEmail = claims.Email
+	data.Username = claims.UserName
+
+	err := h.threadSvc.UpdateThreadCommentReply(c.Request.Context(), data)
+	if err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[UpdateThreadCommentReply] Failed to update thread comment reply by id", zap.Error(err))
 		httpresp.HttpRespError(c, err)
 		return
 	}

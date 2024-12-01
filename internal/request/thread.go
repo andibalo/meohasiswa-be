@@ -129,3 +129,20 @@ type UpdateThreadCommentReq struct {
 	Username  string `json:"-"`
 	UserEmail string `json:"-"`
 }
+
+type DeleteThreadCommentReplyReq struct {
+	CommentID string `json:"comment_id"`
+
+	UserID    string `json:"-"`
+	Username  string `json:"-"`
+	UserEmail string `json:"-"`
+}
+
+type UpdateThreadCommentReplyReq struct {
+	Content string `json:"content" binding:"required"`
+
+	CommentID string `json:"-"`
+	UserID    string `json:"-"`
+	Username  string `json:"-"`
+	UserEmail string `json:"-"`
+}

@@ -605,3 +605,31 @@ func (r *threadRepository) UpdateThreadCommentByID(threadCommentID string, updat
 
 	return nil
 }
+
+func (r *threadRepository) DeleteThreadCommentReplyByID(threadCommentReplyID string, updateValues map[string]interface{}) error {
+
+	_, err := r.db.NewUpdate().
+		Model(&updateValues).
+		TableExpr("thread_comment_reply").
+		Where("id = ?", threadCommentReplyID).
+		Exec(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *threadRepository) UpdateThreadCommentReplyByID(threadCommentReplyID string, updateValues map[string]interface{}) error {
+
+	_, err := r.db.NewUpdate().
+		Model(&updateValues).
+		TableExpr("thread_comment_reply").
+		Where("id = ?", threadCommentReplyID).
+		Exec(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

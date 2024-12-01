@@ -44,6 +44,8 @@ type ThreadService interface {
 	GetThreadComments(ctx context.Context, req request.GetThreadCommentsReq) (response.GetThreadCommentsResponse, error)
 	DeleteThreadComment(ctx context.Context, req request.DeleteThreadCommentReq) error
 	UpdateThreadComment(ctx context.Context, req request.UpdateThreadCommentReq) error
+	DeleteThreadCommentReply(ctx context.Context, req request.DeleteThreadCommentReplyReq) error
+	UpdateThreadCommentReply(ctx context.Context, req request.UpdateThreadCommentReplyReq) error
 }
 
 type UniversityService interface {

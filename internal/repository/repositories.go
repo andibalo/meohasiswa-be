@@ -51,6 +51,8 @@ type ThreadRepository interface {
 	DeleteThreadCommentByID(threadCommentID string, updateValues map[string]interface{}) error
 	UpdateThreadCommentByID(threadCommentID string, updateValues map[string]interface{}) error
 	GetThreadCommentReplyByID(id string) (model.ThreadCommentReply, error)
+	DeleteThreadCommentReplyByID(threadCommentReplyID string, updateValues map[string]interface{}) error
+	UpdateThreadCommentReplyByID(threadCommentReplyID string, updateValues map[string]interface{}) error
 	GetLastThreadActivityByUserID(threadId string, userId string) (*model.ThreadActivity, error)
 	GetLastThreadCommentActivityByUserID(threadId string, commentId string, userId string) (*model.ThreadCommentActivity, error)
 	GetLastThreadCommentActivityReplyByUserID(threadId string, commentReplyId string, userId string) (*model.ThreadCommentActivity, error)
