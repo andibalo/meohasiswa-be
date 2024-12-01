@@ -112,3 +112,20 @@ type DislikeCommentReq struct {
 	Username  string `json:"-"`
 	UserEmail string `json:"-"`
 }
+
+type DeleteThreadCommentReq struct {
+	CommentID string `json:"comment_id"`
+
+	UserID    string `json:"-"`
+	Username  string `json:"-"`
+	UserEmail string `json:"-"`
+}
+
+type UpdateThreadCommentReq struct {
+	Content string `json:"content" binding:"required"`
+
+	CommentID string `json:"-"`
+	UserID    string `json:"-"`
+	Username  string `json:"-"`
+	UserEmail string `json:"-"`
+}

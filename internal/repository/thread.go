@@ -559,3 +559,49 @@ func (r *threadRepository) GetThreadCommentsByThreadID(threadId string, userId s
 
 	return threadComments, nil
 }
+
+func (r *threadRepository) GetThreadCommentByID(id string) (model.ThreadComment, error) {
+
+	var (
+		tc model.ThreadComment
+	)
+
+	err := r.db.NewSelect().
+		Model(&tc).
+		Where("thc.id = ?", id).
+		Scan(context.Background())
+
+	if err != nil {
+		return tc, err
+	}
+
+	return tc, nil
+}
+
+func (r *threadRepository) DeleteThreadCommentByID(threadCommentID string, updateValues map[string]interface{}) error {
+
+	_, err := r.db.NewUpdate().
+		Model(&updateValues).
+		TableExpr("thread_comment").
+		Where("id = ?", threadCommentID).
+		Exec(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *threadRepository) UpdateThreadCommentByID(threadCommentID string, updateValues map[string]interface{}) error {
+
+	_, err := r.db.NewUpdate().
+		Model(&updateValues).
+		TableExpr("thread_comment").
+		Where("id = ?", threadCommentID).
+		Exec(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

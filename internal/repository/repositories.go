@@ -47,6 +47,9 @@ type ThreadRepository interface {
 	DeleteByID(threadID string, updateValues map[string]interface{}) error
 	GetList(req request.GetThreadListReq) ([]model.Thread, pkg.Pagination, error)
 	GetByID(id string) (model.Thread, error)
+	GetThreadCommentByID(id string) (model.ThreadComment, error)
+	DeleteThreadCommentByID(threadCommentID string, updateValues map[string]interface{}) error
+	UpdateThreadCommentByID(threadCommentID string, updateValues map[string]interface{}) error
 	GetThreadCommentReplyByID(id string) (model.ThreadCommentReply, error)
 	GetLastThreadActivityByUserID(threadId string, userId string) (*model.ThreadActivity, error)
 	GetLastThreadCommentActivityByUserID(threadId string, commentId string, userId string) (*model.ThreadCommentActivity, error)

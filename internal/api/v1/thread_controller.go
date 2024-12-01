@@ -40,6 +40,8 @@ func (h *ThreadController) AddRoutes(r *gin.Engine) {
 	tr.PATCH("/dislike/:thread_id", middleware.JwtMiddleware(h.cfg), h.DislikeThread)
 	tr.GET("/comment/:thread_id", middleware.JwtMiddleware(h.cfg), h.GetThreadComments)
 	tr.POST("/comment/:thread_id", middleware.JwtMiddleware(h.cfg), h.CommentThread)
+	tr.DELETE("/comment/:comment_id", middleware.JwtMiddleware(h.cfg), h.DeleteThreadComment)
+	tr.PATCH("/comment/:comment_id", middleware.JwtMiddleware(h.cfg), h.UpdateThreadComment)
 	tr.POST("/comment/reply/:comment_id", middleware.JwtMiddleware(h.cfg), h.ReplyComment)
 	tr.PATCH("/comment/like/:comment_id", middleware.JwtMiddleware(h.cfg), h.LikeComment)
 	tr.PATCH("/comment/dislike/:comment_id", middleware.JwtMiddleware(h.cfg), h.DislikeComment)
@@ -342,6 +344,39 @@ func (h *ThreadController) CommentThread(c *gin.Context) {
 	return
 }
 
+func (h *ThreadController) UpdateThreadComment(c *gin.Context) {
+	//_, endFunc := trace.Start(c.Copy().Request.Context(), "ThreadController.UpdateThreadComment", "controller")
+	//defer endFunc()
+
+	claims := middleware.ParseToken(c)
+	if len(claims.Token) == 0 {
+		httpresp.HttpRespError(c, oops.Code(response.Unauthorized.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusUnauthorized).Errorf(apperr.ErrUnauthorized))
+		return
+	}
+
+	var data request.UpdateThreadCommentReq
+	if err := c.ShouldBindJSON(&data); err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[UpdateThreadComment] Failed to bind json", zap.Error(err))
+		httpresp.HttpRespError(c, oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf(apperr.ErrBadRequest))
+		return
+	}
+
+	data.CommentID = c.Param("comment_id")
+	data.UserID = claims.ID
+	data.UserEmail = claims.Email
+	data.Username = claims.UserName
+
+	err := h.threadSvc.UpdateThreadComment(c.Request.Context(), data)
+	if err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[UpdateThreadComment] Failed to update thread comment by id", zap.Error(err))
+		httpresp.HttpRespError(c, err)
+		return
+	}
+
+	httpresp.HttpRespSuccess(c, nil, nil)
+	return
+}
+
 func (h *ThreadController) ReplyComment(c *gin.Context) {
 	//_, endFunc := trace.Start(c.Copy().Request.Context(), "ThreadController.ReplyComment", "controller")
 	//defer endFunc()
@@ -436,6 +471,34 @@ func (h *ThreadController) DislikeComment(c *gin.Context) {
 	err := h.threadSvc.DislikeComment(c.Request.Context(), data)
 	if err != nil {
 		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[DislikeComment] Failed to dislike comment", zap.Error(err))
+		httpresp.HttpRespError(c, err)
+		return
+	}
+
+	httpresp.HttpRespSuccess(c, nil, nil)
+	return
+}
+
+func (h *ThreadController) DeleteThreadComment(c *gin.Context) {
+	//_, endFunc := trace.Start(c.Copy().Request.Context(), "ThreadController.DeleteThreadComment", "controller")
+	//defer endFunc()
+
+	claims := middleware.ParseToken(c)
+	if len(claims.Token) == 0 {
+		httpresp.HttpRespError(c, oops.Code(response.Unauthorized.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusUnauthorized).Errorf(apperr.ErrUnauthorized))
+		return
+	}
+
+	var data request.DeleteThreadCommentReq
+
+	data.CommentID = c.Param("comment_id")
+	data.UserID = claims.ID
+	data.UserEmail = claims.Email
+	data.Username = claims.UserName
+
+	err := h.threadSvc.DeleteThreadComment(c.Request.Context(), data)
+	if err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[DeleteThreadComment] Failed to delete thread comment by id", zap.Error(err))
 		httpresp.HttpRespError(c, err)
 		return
 	}

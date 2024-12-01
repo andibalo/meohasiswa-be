@@ -1409,3 +1409,66 @@ func (s *threadService) mapThreadCommentsData(threadComments []model.ThreadComme
 
 	return threadCommentsData
 }
+
+func (s *threadService) DeleteThreadComment(ctx context.Context, req request.DeleteThreadCommentReq) error {
+	//ctx, endFunc := trace.Start(ctx, "ThreadService.DeleteThreadComment", "service")
+	//defer endFunc()
+
+	_, err := s.threadRepo.GetThreadCommentByID(req.CommentID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			s.cfg.Logger().ErrorWithContext(ctx, "[DeleteThreadComment] Thread comment not found", zap.Error(err))
+			return oops.Code(response.NotFound.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusNotFound).Errorf("Thread comment not found")
+		}
+
+		s.cfg.Logger().ErrorWithContext(ctx, "[DeleteThreadComment] Failed to delete thread comment by id", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to delete thread comment by id")
+	}
+
+	updateValues := map[string]interface{}{
+		"deleted_by": req.UserEmail,
+		"deleted_at": time.Now(),
+	}
+
+	err = s.threadRepo.DeleteThreadCommentByID(req.CommentID, updateValues)
+
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[DeleteThreadComment] Failed to delete thread comment in database", zap.Error(err))
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to delete thread comment")
+	}
+
+	return nil
+}
+
+func (s *threadService) UpdateThreadComment(ctx context.Context, req request.UpdateThreadCommentReq) error {
+	//ctx, endFunc := trace.Start(ctx, "ThreadService.UpdateThreadComment", "service")
+	//defer endFunc()
+
+	_, err := s.threadRepo.GetThreadCommentByID(req.CommentID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			s.cfg.Logger().ErrorWithContext(ctx, "[UpdateThreadComment] Thread comment not found", zap.Error(err))
+			return oops.Code(response.NotFound.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusNotFound).Errorf("Thread comment not found")
+		}
+
+		s.cfg.Logger().ErrorWithContext(ctx, "[UpdateThreadComment] Failed to get thread comment by id", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update thread comment by id")
+	}
+
+	updateValues := map[string]interface{}{
+		"content":    req.Content,
+		"updated_by": req.UserEmail,
+		"updated_at": time.Now(),
+	}
+
+	err = s.threadRepo.UpdateThreadCommentByID(req.CommentID, updateValues)
+
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[UpdateThreadComment] Failed to update thread comment in database", zap.Error(err))
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update thread comment")
+	}
+
+	return nil
+}
