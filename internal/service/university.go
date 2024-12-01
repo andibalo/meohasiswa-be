@@ -17,6 +17,7 @@ import (
 	"github.com/uptrace/bun"
 	"go.uber.org/zap"
 	"net/http"
+	"time"
 )
 
 type universityService struct {
@@ -45,9 +46,9 @@ func (s *universityService) CreateUniversityRating(ctx context.Context, req requ
 		uniRatingPoints []model.UniversityRatingPoints
 	)
 
-	user, err := s.userRepo.GetByEmail(req.UserEmail)
+	user, err := s.userRepo.GetByID(req.UserID)
 	if err != nil {
-		if !errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, sql.ErrNoRows) {
 			s.cfg.Logger().ErrorWithContext(ctx, "[CreateUniversityRating] User not found", zap.Error(err))
 			return oops.Code(response.NotFound.AsString()).With(httpresp.StatusCodeCtxKey, http.NotFound).Errorf("User not found")
 		}
@@ -157,6 +158,130 @@ func (s *universityService) CreateUniversityRating(ctx context.Context, req requ
 	err = tx.Commit()
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[CreateUniversityRating] Failed to commit transaction", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+	}
+
+	return nil
+}
+
+func (s *universityService) UpdateUniversityRating(ctx context.Context, req request.UpdateUniversityRatingReq) error {
+	//ctx, endFunc := trace.Start(ctx, "UniversityService.UpdateUniversityRating", "service")
+	//defer endFunc()
+
+	var (
+		overallRating   float64
+		uniRatingPoints []model.UniversityRatingPoints
+	)
+
+	user, err := s.userRepo.GetByID(req.UserID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			s.cfg.Logger().ErrorWithContext(ctx, "[UpdateUniversityRating] User not found", zap.Error(err))
+			return oops.Code(response.NotFound.AsString()).With(httpresp.StatusCodeCtxKey, http.NotFound).Errorf("User not found")
+		}
+
+		s.cfg.Logger().ErrorWithContext(ctx, "[UpdateUniversityRating] Failed to get user by email", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to get user data")
+	}
+
+	if user.UniversityID == nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[UpdateUniversityRating] user does not belong to any university", zap.Error(err))
+		return oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("User does not belong to any university")
+	}
+
+	if *user.UniversityID != req.UniversityID {
+		s.cfg.Logger().ErrorWithContext(ctx, "[UpdateUniversityRating] user does not belong to this university", zap.Error(err))
+		return oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("User does not belong to this university")
+	}
+
+	_, err = s.universityRepo.GetUniversityRatingByUserIDAndUniversityID(req.UserID, req.UniversityID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			s.cfg.Logger().ErrorWithContext(ctx, "[UpdateUniversityRating] User university rating not found", zap.Error(err))
+			return oops.Code(response.NotFound.AsString()).With(httpresp.StatusCodeCtxKey, http.NotFound).Errorf("User university rating not found")
+		}
+
+		s.cfg.Logger().ErrorWithContext(ctx, "[UpdateUniversityRating] Failed to get university rating by user id and university id", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to get existing university rating")
+	}
+
+	tx, err := s.db.Begin()
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[UpdateUniversityRating] Failed to begin transaction", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+	}
+
+	totalRating := req.FacilityRating +
+		req.PriceToValueRating +
+		req.EducationQualityRating +
+		req.StudentOrganizationRating +
+		req.SocialEnvironmentRating
+
+	overallRating = float64(totalRating) / float64(5)
+
+	updateValues := map[string]interface{}{
+		"title":                       req.Title,
+		"content":                     req.Content,
+		"university_major":            req.UniversityMajor,
+		"facility_rating":             req.FacilityRating,
+		"student_organization_rating": req.StudentOrganizationRating,
+		"social_environment_rating":   req.SocialEnvironmentRating,
+		"education_quality_rating":    req.EducationQualityRating,
+		"price_to_value_rating":       req.PriceToValueRating,
+		"overall_rating":              overallRating,
+		"updated_by":                  req.UserEmail,
+		"updated_at":                  time.Now(),
+	}
+
+	err = s.universityRepo.UpdateUniversityRatingByIDTx(req.UniversityRatingID, updateValues, tx)
+
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[UpdateUniversityRating] Failed to update university rating in database", zap.Error(err))
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update university rating")
+	}
+
+	err = s.universityRepo.DeleteUniversityRatingPointsTx(req.UniversityRatingID, tx)
+
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[UpdateUniversityRating] Failed to delete university rating points in database", zap.Error(err))
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to delete university rating points")
+	}
+
+	for _, pro := range req.Pros {
+		uniRatingPoints = append(uniRatingPoints, model.UniversityRatingPoints{
+			ID:                 uuid.NewString(),
+			UniversityRatingID: req.UniversityRatingID,
+			Type:               constants.UNI_RATING_PRO,
+			Content:            pro,
+			CreatedBy:          req.UserEmail,
+			UpdatedBy:          req.UserEmail,
+		})
+	}
+
+	for _, con := range req.Cons {
+		uniRatingPoints = append(uniRatingPoints, model.UniversityRatingPoints{
+			ID:                 uuid.NewString(),
+			UniversityRatingID: req.UniversityRatingID,
+			Type:               constants.UNI_RATING_CON,
+			Content:            con,
+			CreatedBy:          req.UserEmail,
+			UpdatedBy:          req.UserEmail,
+		})
+	}
+
+	err = s.universityRepo.BulkSaveUniversityRatingPointsTx(uniRatingPoints, tx)
+
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[UpdateUniversityRating] Failed to insert university rating points to database", zap.Error(err))
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to create university rating pros and cons")
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[UpdateUniversityRating] Failed to commit transaction", zap.Error(err))
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
 	}
 

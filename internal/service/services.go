@@ -50,6 +50,7 @@ type UniversityService interface {
 	GetUniversityRatingList(ctx context.Context, req request.GetUniversityRatingListReq) (response.GetUniversityRatingListResponse, error)
 	GetUniversityRatingDetail(ctx context.Context, req request.GetUniversityRatingDetailReq) (response.UniversityRatingDetailData, error)
 	CreateUniversityRating(ctx context.Context, req request.RateUniversityReq) error
+	UpdateUniversityRating(ctx context.Context, req request.UpdateUniversityRatingReq) error
 }
 
 type ImageService interface {

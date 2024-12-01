@@ -260,7 +260,7 @@ func (s *subThreadService) UnFollowSubThread(ctx context.Context, req request.Un
 
 	stf, err := s.subThreadRepo.GetSubThreadFollowerByUserIDAndSubThreadID(req.UserID, req.SubThreadID)
 	if err != nil {
-		if !errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, sql.ErrNoRows) {
 			s.cfg.Logger().ErrorWithContext(ctx, "[UnFollowSubThread] Subthread follower not found", zap.Error(err))
 			return oops.Code(response.NotFound.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusNotFound).Errorf("Subthread follower not found")
 		}

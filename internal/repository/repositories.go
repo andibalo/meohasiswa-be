@@ -85,7 +85,10 @@ type UniversityRepository interface {
 	GetUniversityRatingByUserIDAndUniversityID(userID string, universityID string) (*model.UniversityRating, error)
 	Save(university *model.University) error
 	SaveUniversityRatingTx(universityRating *model.UniversityRating, tx bun.Tx) error
+	UpdateUniversityRatingByIDTx(universityRatingID string, updateValues map[string]interface{}, tx bun.Tx) error
 	BulkSaveUniversityRatingPointsTx(urp []model.UniversityRatingPoints, tx bun.Tx) error
+	UpdateUniversityRatingPointByIDTx(universityRatingPointID string, updateValues map[string]interface{}, tx bun.Tx) error
+	DeleteUniversityRatingPointsTx(universityRatingID string, tx bun.Tx) error
 }
 
 type FileRepository interface {

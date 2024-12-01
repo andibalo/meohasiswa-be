@@ -34,6 +34,7 @@ func (h *UniversityController) AddRoutes(r *gin.Engine) {
 	ur.GET("/ratings", middleware.JwtMiddleware(h.cfg), h.GetUniversityRatingList)
 	ur.GET("/rating/:rating_id", middleware.JwtMiddleware(h.cfg), h.GetUniversityRatingDetail)
 	ur.POST("/rate/:university_id", middleware.JwtMiddleware(h.cfg), h.RateUniversity)
+	ur.PATCH("/rating/:rating_id", middleware.JwtMiddleware(h.cfg), h.UpdateUniversityRating)
 }
 
 func (h *UniversityController) GetUniversityRatingList(c *gin.Context) {
@@ -124,6 +125,39 @@ func (h *UniversityController) RateUniversity(c *gin.Context) {
 	data.UserEmail = claims.Email
 
 	err := h.universitySvc.CreateUniversityRating(c.Request.Context(), data)
+	if err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[RateUniversity] Failed to rate university", zap.Error(err))
+		httpresp.HttpRespError(c, err)
+		return
+	}
+
+	httpresp.HttpRespSuccess(c, nil, nil)
+	return
+}
+
+func (h *UniversityController) UpdateUniversityRating(c *gin.Context) {
+	//_, endFunc := trace.Start(c.Copy().Request.Context(), "UniversityController.UpdateUniversityRating", "controller")
+	//defer endFunc()
+
+	claims := middleware.ParseToken(c)
+	if len(claims.Token) == 0 {
+		httpresp.HttpRespError(c, oops.Code(response.Unauthorized.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusUnauthorized).Errorf(apperr.ErrUnauthorized))
+		return
+	}
+
+	var data request.UpdateUniversityRatingReq
+
+	if err := c.ShouldBindJSON(&data); err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[UpdateUniversityRating] Failed to bind json", zap.Error(err))
+		httpresp.HttpRespError(c, oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf(apperr.ErrBadRequest))
+		return
+	}
+
+	data.UniversityRatingID = c.Param("rating_id")
+	data.UserID = claims.ID
+	data.UserEmail = claims.Email
+
+	err := h.universitySvc.UpdateUniversityRating(c.Request.Context(), data)
 	if err != nil {
 		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[RateUniversity] Failed to rate university", zap.Error(err))
 		httpresp.HttpRespError(c, err)

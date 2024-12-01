@@ -149,9 +149,50 @@ func (r *universityRepository) SaveUniversityRatingTx(universityRating *model.Un
 	return nil
 }
 
+func (r *universityRepository) UpdateUniversityRatingByIDTx(universityRatingID string, updateValues map[string]interface{}, tx bun.Tx) error {
+
+	_, err := tx.NewUpdate().
+		Model(&updateValues).
+		TableExpr("university_rating").
+		Where("id = ?", universityRatingID).
+		Exec(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *universityRepository) BulkSaveUniversityRatingPointsTx(urp []model.UniversityRatingPoints, tx bun.Tx) error {
 
 	_, err := tx.NewInsert().Model(&urp).Exec(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *universityRepository) UpdateUniversityRatingPointByIDTx(universityRatingPointID string, updateValues map[string]interface{}, tx bun.Tx) error {
+
+	_, err := tx.NewUpdate().
+		Model(&updateValues).
+		TableExpr("university_rating_point").
+		Where("id = ?", universityRatingPointID).
+		Exec(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *universityRepository) DeleteUniversityRatingPointsTx(universityRatingID string, tx bun.Tx) error {
+
+	_, err := tx.NewDelete().
+		TableExpr("university_rating_point").
+		Where("university_rating_id = ?", universityRatingID).
+		Exec(context.Background())
 	if err != nil {
 		return err
 	}
