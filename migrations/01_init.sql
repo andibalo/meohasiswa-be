@@ -171,6 +171,19 @@ CREATE TABLE thread_activity (
     deleted_by VARCHAR(100)
 );
 
+CREATE TABLE thread_subscription (
+    id UUID PRIMARY KEY NOT NULL,
+    user_id UUID NOT NULL REFERENCES "user"(id),
+    thread_id UUID NOT NULL REFERENCES thread(id),
+    is_subscribed BOOLEAN NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_by VARCHAR(100) NOT NULL,
+    updated_at TIMESTAMPTZ,
+    updated_by VARCHAR(100),
+    deleted_at TIMESTAMPTZ,
+    deleted_by VARCHAR(100)
+);
+
 CREATE TABLE thread_comment (
     id UUID PRIMARY KEY NOT NULL,
     user_id UUID NOT NULL REFERENCES "user"(id),

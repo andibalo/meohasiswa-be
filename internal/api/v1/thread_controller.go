@@ -36,6 +36,8 @@ func (h *ThreadController) AddRoutes(r *gin.Engine) {
 	tr.GET("/:thread_id", middleware.JwtMiddleware(h.cfg), h.GetThreadDetail)
 	tr.DELETE("/:thread_id", middleware.JwtMiddleware(h.cfg), h.DeleteThread)
 	tr.PATCH("/:thread_id", middleware.JwtMiddleware(h.cfg), h.UpdateThread)
+	tr.POST("/subscribe/:thread_id", middleware.JwtMiddleware(h.cfg), h.SubscribeThread)
+	tr.PATCH("/unsubscribe/:thread_id", middleware.JwtMiddleware(h.cfg), h.UnSubscribeThread)
 	tr.PATCH("/like/:thread_id", middleware.JwtMiddleware(h.cfg), h.LikeThread)
 	tr.PATCH("/dislike/:thread_id", middleware.JwtMiddleware(h.cfg), h.DislikeThread)
 	tr.GET("/comment/:thread_id", middleware.JwtMiddleware(h.cfg), h.GetThreadComments)
@@ -562,6 +564,62 @@ func (h *ThreadController) UpdateThreadCommentReply(c *gin.Context) {
 	err := h.threadSvc.UpdateThreadCommentReply(c.Request.Context(), data)
 	if err != nil {
 		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[UpdateThreadCommentReply] Failed to update thread comment reply by id", zap.Error(err))
+		httpresp.HttpRespError(c, err)
+		return
+	}
+
+	httpresp.HttpRespSuccess(c, nil, nil)
+	return
+}
+
+func (h *ThreadController) SubscribeThread(c *gin.Context) {
+	//_, endFunc := trace.Start(c.Copy().Request.Context(), "ThreadController.SubscribeThread", "controller")
+	//defer endFunc()
+
+	claims := middleware.ParseToken(c)
+	if len(claims.Token) == 0 {
+		httpresp.HttpRespError(c, oops.Code(response.Unauthorized.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusUnauthorized).Errorf(apperr.ErrUnauthorized))
+		return
+	}
+
+	var data request.SubscribeThreadReq
+
+	data.ThreadID = c.Param("thread_id")
+	data.UserID = claims.ID
+	data.UserEmail = claims.Email
+	data.Username = claims.UserName
+
+	err := h.threadSvc.SubscribeThread(c.Request.Context(), data)
+	if err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[SubscribeThread] Failed to subscribe thread", zap.Error(err))
+		httpresp.HttpRespError(c, err)
+		return
+	}
+
+	httpresp.HttpRespSuccess(c, nil, nil)
+	return
+}
+
+func (h *ThreadController) UnSubscribeThread(c *gin.Context) {
+	//_, endFunc := trace.Start(c.Copy().Request.Context(), "ThreadController.UnSubscribeThread", "controller")
+	//defer endFunc()
+
+	claims := middleware.ParseToken(c)
+	if len(claims.Token) == 0 {
+		httpresp.HttpRespError(c, oops.Code(response.Unauthorized.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusUnauthorized).Errorf(apperr.ErrUnauthorized))
+		return
+	}
+
+	var data request.UnSubscribeThreadReq
+
+	data.ThreadID = c.Param("thread_id")
+	data.UserID = claims.ID
+	data.UserEmail = claims.Email
+	data.Username = claims.UserName
+
+	err := h.threadSvc.UnSubscribeThread(c.Request.Context(), data)
+	if err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[UnSubscribeThread] Failed to unsubscribe thread", zap.Error(err))
 		httpresp.HttpRespError(c, err)
 		return
 	}

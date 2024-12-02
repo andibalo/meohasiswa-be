@@ -116,8 +116,8 @@ func (s *threadService) DeleteThread(ctx context.Context, req request.DeleteThre
 			return oops.Code(response.NotFound.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusNotFound).Errorf("Thread not found")
 		}
 
-		s.cfg.Logger().ErrorWithContext(ctx, "[DeleteThread] Failed to delete thread by id", zap.Error(err))
-		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to delete thread by id")
+		s.cfg.Logger().ErrorWithContext(ctx, "[DeleteThread] Failed to get thread by id", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to get thread by id")
 	}
 
 	updateValues := map[string]interface{}{
@@ -1531,6 +1531,97 @@ func (s *threadService) UpdateThreadCommentReply(ctx context.Context, req reques
 		s.cfg.Logger().ErrorWithContext(ctx, "[UpdateThreadCommentReply] Failed to update thread comment reply in database", zap.Error(err))
 
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update thread comment reply")
+	}
+
+	return nil
+}
+
+func (s *threadService) SubscribeThread(ctx context.Context, req request.SubscribeThreadReq) error {
+	//ctx, endFunc := trace.Start(ctx, "ThreadService.SubscribeThread", "service")
+	//defer endFunc()
+
+	t, err := s.threadRepo.GetByID(req.ThreadID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			s.cfg.Logger().ErrorWithContext(ctx, "[SubscribeThread] Thread not found", zap.Error(err))
+			return oops.Code(response.NotFound.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusNotFound).Errorf("Thread not found")
+		}
+
+		s.cfg.Logger().ErrorWithContext(ctx, "[SubscribeThread] Failed to get thread by id", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to get thread by id")
+	}
+
+	if t.UserID == req.UserID {
+		s.cfg.Logger().WarnWithContext(ctx, "[SubscribeThread] Cannot subscribe to the user's own thread")
+		return oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("Cannot subscribe to the user's own thread")
+	}
+
+	ts, err := s.threadRepo.GetThreadSubscriptionByUserAndThreadID(req.UserID, req.ThreadID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		s.cfg.Logger().ErrorWithContext(ctx, "[SubscribeThread] Failed to get thread subscription by user and thread id", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+	}
+
+	if ts.ID != "" {
+
+		if ts.IsSubscribed {
+			s.cfg.Logger().WarnWithContext(ctx, "[SubscribeThread] Thread already subscribed")
+			return nil
+		}
+
+		err = s.threadRepo.UpdateThreadSubscriptionIsSubscribed(ts.ID, true)
+		if err != nil {
+			s.cfg.Logger().ErrorWithContext(ctx, "[SubscribeThread] Failed to update thread subscription", zap.Error(err))
+
+			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update thread subscription")
+		}
+
+		return nil
+	}
+
+	threadSubscription := &model.ThreadSubscription{
+		ID:           uuid.NewString(),
+		UserID:       req.UserID,
+		ThreadID:     req.ThreadID,
+		IsSubscribed: true,
+		CreatedBy:    req.UserEmail,
+	}
+
+	err = s.threadRepo.SaveThreadSubscription(threadSubscription)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[SubscribeThread] Failed to save thread subscription", zap.Error(err))
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to save thread subscription")
+	}
+
+	return nil
+}
+
+func (s *threadService) UnSubscribeThread(ctx context.Context, req request.UnSubscribeThreadReq) error {
+	//ctx, endFunc := trace.Start(ctx, "ThreadService.UnSubscribeThread", "service")
+	//defer endFunc()
+
+	ts, err := s.threadRepo.GetThreadSubscriptionByUserAndThreadID(req.UserID, req.ThreadID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			s.cfg.Logger().ErrorWithContext(ctx, "[UnSubscribeThread] Thread subscription not found", zap.Error(err))
+			return oops.Code(response.NotFound.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusNotFound).Errorf("Thread subscription not found")
+		}
+
+		s.cfg.Logger().ErrorWithContext(ctx, "[UnSubscribeThread] Failed to fetch thread subscription by user and thread id", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+	}
+
+	if !ts.IsSubscribed {
+		s.cfg.Logger().WarnWithContext(ctx, "[UnSubscribeThread] Thread already unsubscribed")
+		return nil
+	}
+
+	err = s.threadRepo.UpdateThreadSubscriptionIsSubscribed(ts.ID, false)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[UnSubscribeThread] Failed to update thread subscription", zap.Error(err))
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update thread subscription")
 	}
 
 	return nil

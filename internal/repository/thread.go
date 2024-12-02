@@ -221,6 +221,22 @@ func (r *threadRepository) GetByID(id string) (model.Thread, error) {
 	return thread, nil
 }
 
+func (r *threadRepository) GetThreadSubscriptionByUserAndThreadID(userID string, threadID string) (model.ThreadSubscription, error) {
+
+	threadSubscription := model.ThreadSubscription{}
+
+	err := r.db.NewSelect().
+		Model(&threadSubscription).
+		Where("user_id = ? and thread_id = ?", userID, threadID).
+		Scan(context.Background())
+
+	if err != nil {
+		return threadSubscription, err
+	}
+
+	return threadSubscription, nil
+}
+
 func (r *threadRepository) GetList(req request.GetThreadListReq) ([]model.Thread, pkg.Pagination, error) {
 
 	var (
@@ -627,6 +643,33 @@ func (r *threadRepository) UpdateThreadCommentReplyByID(threadCommentReplyID str
 		TableExpr("thread_comment_reply").
 		Where("id = ?", threadCommentReplyID).
 		Exec(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *threadRepository) SaveThreadSubscription(threadSubscription *model.ThreadSubscription) error {
+
+	_, err := r.db.NewInsert().Model(threadSubscription).Exec(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *threadRepository) UpdateThreadSubscriptionIsSubscribed(id string, isSubscribed bool) error {
+	threadSubscription := &model.ThreadSubscription{}
+	threadSubscription.IsSubscribed = isSubscribed
+
+	_, err := r.db.NewUpdate().
+		Model(threadSubscription).
+		Column("is_subscribed").
+		Where("id = ?", id).
+		Exec(context.Background())
+
 	if err != nil {
 		return err
 	}

@@ -46,6 +46,8 @@ type ThreadService interface {
 	UpdateThreadComment(ctx context.Context, req request.UpdateThreadCommentReq) error
 	DeleteThreadCommentReply(ctx context.Context, req request.DeleteThreadCommentReplyReq) error
 	UpdateThreadCommentReply(ctx context.Context, req request.UpdateThreadCommentReplyReq) error
+	SubscribeThread(ctx context.Context, req request.SubscribeThreadReq) error
+	UnSubscribeThread(ctx context.Context, req request.UnSubscribeThreadReq) error
 }
 
 type UniversityService interface {

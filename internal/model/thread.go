@@ -105,3 +105,18 @@ type ThreadCommentReply struct {
 	DeletedBy          *string      `json:"-"`
 	DeletedAt          time.Time    `bun:",nullzero,soft_delete" json:"-"`
 }
+
+type ThreadSubscription struct {
+	bun.BaseModel `bun:"table:thread_subscription,alias:ths"`
+
+	ID           string       `bun:",pk" json:"id"`
+	UserID       string       `bun:"user_id" json:"user_id"`
+	ThreadID     string       `bun:"thread_id" json:"thread_id"`
+	IsSubscribed bool         `bun:"is_subscribed" json:"is_subscribed"`
+	CreatedBy    string       `bun:"created_by" json:"created_by"`
+	CreatedAt    time.Time    `bun:",nullzero,default:now()" json:"created_at"`
+	UpdatedBy    *string      `json:"updated_by"`
+	UpdatedAt    bun.NullTime `json:"updated_at"`
+	DeletedBy    *string      `json:"-"`
+	DeletedAt    time.Time    `bun:",nullzero,soft_delete" json:"-"`
+}

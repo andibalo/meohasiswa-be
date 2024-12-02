@@ -146,3 +146,19 @@ type UpdateThreadCommentReplyReq struct {
 	Username  string `json:"-"`
 	UserEmail string `json:"-"`
 }
+
+type SubscribeThreadReq struct {
+	ThreadID string `json:"-"`
+
+	UserID    string `json:"-"`
+	Username  string `json:"-"`
+	UserEmail string `json:"-"`
+}
+
+type UnSubscribeThreadReq struct {
+	ThreadID string `json:"-"`
+
+	UserID    string `json:"-"`
+	Username  string `json:"-"`
+	UserEmail string `json:"-"`
+}
