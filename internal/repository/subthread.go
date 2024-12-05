@@ -47,7 +47,7 @@ func (r *subThreadRepository) GetList(req request.GetSubThreadListReq) ([]model.
 
 	if req.ShouldExcludeFollowing {
 		query.Join("LEFT JOIN subthread_follower AS stf ON stf.subthread_id = st.id AND stf.user_id = ?", req.UserID).
-			Where("stf.user_id IS NULL")
+			Where("stf.user_id IS NULL OR stf.is_following = FALSE")
 	}
 
 	if req.Search != "" {
