@@ -178,6 +178,11 @@ func (s *authService) Login(ctx context.Context, req request.LoginUserReq) (toke
 		return "", oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
 	}
 
+	if !existingUser.IsEmailVerified {
+		s.cfg.Logger().ErrorWithContext(ctx, "[Login] User email is not yet verified", zap.String("email", req.Email))
+		return "", oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("User email is not yet verified")
+	}
+
 	isMatch := pkg.CheckPasswordHash(req.Password, existingUser.Password)
 	if !isMatch {
 		s.cfg.Logger().ErrorWithContext(ctx, "[Login] Invalid password for user", zap.String("email", req.Email))
