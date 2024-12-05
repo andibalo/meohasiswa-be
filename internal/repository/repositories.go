@@ -16,6 +16,7 @@ type UserRepository interface {
 	GetByID(id string) (*model.User, error)
 	GetUserDevices(req request.GetUserDevicesReq) ([]model.UserDevice, error)
 	GetByEmail(email string) (*model.User, error)
+	SaveUserVerifyCode(userVerifyCode *model.UserVerifyCode) error
 	SaveUserVerifyCodeTx(userVerifyCode *model.UserVerifyCode, tx bun.Tx) error
 	SetUserToEmailVerifiedTx(id string, tx bun.Tx) error
 	GetUserVerifyCodeByID(id string, verifyCodeType string) (*model.UserVerifyCode, error)

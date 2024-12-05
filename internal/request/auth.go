@@ -25,3 +25,7 @@ type VerifyResetPasswordReq struct {
 	Email string `json:"email" binding:"required"`
 	Code  string `json:"code" binding:"required"`
 }
+
+type SendResetPasswordLinkReq struct {
+	Email string `json:"email" binding:"required"`
+}

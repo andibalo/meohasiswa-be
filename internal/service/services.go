@@ -19,6 +19,7 @@ type AuthService interface {
 	VerifyEmail(ctx context.Context, req request.VerifyEmailReq) (err error)
 	ResetPassword(ctx context.Context, req request.ResetPasswordReq) (err error)
 	VerifyResetPassword(ctx context.Context, req request.VerifyResetPasswordReq) (err error)
+	SendResetPasswordLink(ctx context.Context, req request.SendResetPasswordLinkReq) (err error)
 }
 
 type SubThreadService interface {

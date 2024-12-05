@@ -34,6 +34,7 @@ func (h *AuthController) AddRoutes(r *gin.Engine) {
 	ar.POST("/verify-email", h.VerifyEmail)
 	ar.PATCH("/reset-password", h.ResetPassword)
 	ar.PATCH("/reset-password/code/verify", h.VerifyResetPassword)
+	ar.POST("/reset-password/code/send", h.SendResetPasswordLink)
 }
 
 func (h *AuthController) Register(c *gin.Context) {
@@ -143,6 +144,29 @@ func (h *AuthController) VerifyResetPassword(c *gin.Context) {
 	err := h.authSvc.VerifyResetPassword(c.Request.Context(), data)
 	if err != nil {
 		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[VerifyResetPassword] Failed to verify reset password code", zap.Error(err))
+		httpresp.HttpRespError(c, err)
+		return
+	}
+
+	httpresp.HttpRespSuccess(c, nil, nil)
+	return
+}
+
+func (h *AuthController) SendResetPasswordLink(c *gin.Context) {
+	//_, endFunc := trace.Start(c.Copy().Request.Context(), "AuthController.SendResetPasswordLink", "controller")
+	//defer endFunc()
+
+	var data request.SendResetPasswordLinkReq
+
+	if err := c.ShouldBindJSON(&data); err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[SendResetPasswordLink] Failed to bind json", zap.Error(err))
+		httpresp.HttpRespError(c, oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf(apperr.ErrBadRequest))
+		return
+	}
+
+	err := h.authSvc.SendResetPasswordLink(c.Request.Context(), data)
+	if err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[SendResetPasswordLink] Failed to send reset password link", zap.Error(err))
 		httpresp.HttpRespError(c, err)
 		return
 	}

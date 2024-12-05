@@ -114,6 +114,7 @@ type S3 struct {
 type BrevoSvc struct {
 	APIKey                         string
 	SendVerificationCodeTemplateId int64
+	SendResetPasswordTemplateId    int64
 }
 
 type Mailer struct {
@@ -210,6 +211,7 @@ func InitConfig() *AppConfig {
 		BrevoSvc: BrevoSvc{
 			APIKey:                         viper.GetString("BREVO_SVC_API_KEY"),
 			SendVerificationCodeTemplateId: viper.GetInt64("BREVO_SVC_SEND_VERIFICATION_CODE_TEMPLATE_ID"),
+			SendResetPasswordTemplateId:    viper.GetInt64("BREVO_SVC_SEND_RESET_PASSWORD_TEMPLATE_ID"),
 		},
 		Mailer: Mailer{
 			DefaultSenderName:  viper.GetString("DEFAULT_SENDER_NAME"),

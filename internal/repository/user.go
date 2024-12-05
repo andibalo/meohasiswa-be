@@ -174,6 +174,16 @@ func (r *userRepository) GetUserDevices(req request.GetUserDevicesReq) ([]model.
 	return userDevices, nil
 }
 
+func (r *userRepository) SaveUserVerifyCode(userVerifyCode *model.UserVerifyCode) error {
+
+	_, err := r.db.NewInsert().Model(userVerifyCode).Exec(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *userRepository) SaveUserVerifyCodeTx(userVerifyCode *model.UserVerifyCode, tx bun.Tx) error {
 
 	_, err := tx.NewInsert().Model(userVerifyCode).Exec(context.Background())

@@ -10,7 +10,8 @@ type MailService interface {
 const (
 	SEND_VERIFICATION_CODE_EMAIL         = "SEND_VERIFICATION_CODE_EMAIL"
 	SEND_VERIFICATION_CODE_EMAIL_SUBJECT = "MeowHasiswa - Verification Code"
-	SEND_PASSWORD_RESET_EMAIL            = "SEND_PASSWORD_RESET_EMAIL"
+	SEND_RESET_PASSWORD_EMAIL            = "SEND_RESET_PASSWORD_EMAIL"
+	SEND_RESET_PASSWORD_EMAIL_SUBJECT    = "MeowHasiswa - Reset Password"
 )
 
 // Mail represents a email request

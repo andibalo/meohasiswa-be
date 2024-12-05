@@ -366,3 +366,57 @@ func (s *authService) VerifyResetPassword(ctx context.Context, req request.Verif
 
 	return nil
 }
+
+func (s *authService) SendResetPasswordLink(ctx context.Context, req request.SendResetPasswordLinkReq) (err error) {
+	//ctx, endFunc := trace.Start(ctx, "AuthService.SendResetPasswordLink", "service")
+	//defer endFunc()
+
+	existingUser, err := s.userRepo.GetByEmail(req.Email)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			s.cfg.Logger().ErrorWithContext(ctx, "[SendResetPasswordLink] User not found", zap.Error(err))
+			return oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("User not found")
+		}
+
+		s.cfg.Logger().ErrorWithContext(ctx, "[SendResetPasswordLink] Failed to get user by email", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+	}
+
+	userVerifyCode := &model.UserVerifyCode{
+		ID:        uuid.NewString(),
+		UserID:    existingUser.ID,
+		Type:      constants.TYPE_RESET_PASSWORD,
+		Code:      pkg.GenRandNumber(6),
+		Email:     existingUser.Email,
+		IsUsed:    false,
+		ExpiredAt: time.Now().Add(time.Minute * time.Duration(s.cfg.GetAuthCfg().UserSecretCodeExpiryMins)),
+		CreatedBy: s.cfg.AppName(),
+	}
+
+	err = s.userRepo.SaveUserVerifyCode(userVerifyCode)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[SendResetPasswordLink] Failed to insert user verify code to database", zap.Error(err))
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+	}
+
+	if s.cfg.GetFlags().EnableSendEmail {
+		err = s.mailerSvc.SendMail(ctx, mailer.Mail{
+			To: []string{
+				req.Email,
+			},
+			Name:       mailer.SEND_RESET_PASSWORD_EMAIL,
+			Subject:    mailer.SEND_RESET_PASSWORD_EMAIL_SUBJECT,
+			TemplateID: s.cfg.GetBrevoSvcCfg().SendResetPasswordTemplateId,
+			Data: map[string]interface{}{
+				"code": userVerifyCode.Code,
+			},
+		})
+
+		if err != nil {
+			s.cfg.Logger().ErrorWithContext(ctx, "[SendResetPasswordLink] Failed to send reset password link email", zap.Error(err))
+		}
+	}
+
+	return nil
+}
