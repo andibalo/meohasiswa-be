@@ -17,6 +17,8 @@ type AuthService interface {
 	Register(ctx context.Context, req request.RegisterUserReq) error
 	Login(ctx context.Context, req request.LoginUserReq) (token string, err error)
 	VerifyEmail(ctx context.Context, req request.VerifyEmailReq) (err error)
+	ResetPassword(ctx context.Context, req request.ResetPasswordReq) (err error)
+	VerifyResetPassword(ctx context.Context, req request.VerifyResetPasswordReq) (err error)
 }
 
 type SubThreadService interface {

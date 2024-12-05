@@ -72,9 +72,10 @@ CREATE TABLE university_rating_point (
   updated_by VARCHAR(100)  NOT NULL
 );
 
-CREATE TABLE user_verify_email (
+CREATE TABLE user_verify_code (
     id UUID PRIMARY KEY NOT NULL,
     user_id UUID NOT NULL REFERENCES "user"(id),
+    type VARCHAR(50) NOT NULL,
     email VARCHAR(255) NOT NULL,
     code VARCHAR(50) NOT NULL,
     is_used BOOLEAN NOT NULL DEFAULT FALSE,

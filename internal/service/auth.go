@@ -96,9 +96,10 @@ func (s *authService) Register(ctx context.Context, req request.RegisterUserReq)
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
 	}
 
-	userVerifyEmail := &model.UserVerifyEmail{
+	userVerifyCode := &model.UserVerifyCode{
 		ID:        uuid.NewString(),
 		UserID:    user.ID,
+		Type:      constants.TYPE_VERIFY_EMAIL,
 		Code:      pkg.GenRandNumber(6),
 		Email:     user.Email,
 		IsUsed:    false,
@@ -106,9 +107,9 @@ func (s *authService) Register(ctx context.Context, req request.RegisterUserReq)
 		CreatedBy: s.cfg.AppName(),
 	}
 
-	err = s.userRepo.SaveUserVerifyEmailTx(userVerifyEmail, tx)
+	err = s.userRepo.SaveUserVerifyCodeTx(userVerifyCode, tx)
 	if err != nil {
-		s.cfg.Logger().ErrorWithContext(ctx, "[Register] Failed to insert user verify email to database", zap.Error(err))
+		s.cfg.Logger().ErrorWithContext(ctx, "[Register] Failed to insert user verify code to database", zap.Error(err))
 		tx.Rollback()
 
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
@@ -129,7 +130,7 @@ func (s *authService) Register(ctx context.Context, req request.RegisterUserReq)
 			Subject:    mailer.SEND_VERIFICATION_CODE_EMAIL_SUBJECT,
 			TemplateID: s.cfg.GetBrevoSvcCfg().SendVerificationCodeTemplateId,
 			Data: map[string]interface{}{
-				"code": userVerifyEmail.Code,
+				"code": userVerifyCode.Code,
 			},
 		})
 
@@ -218,23 +219,23 @@ func (s *authService) VerifyEmail(ctx context.Context, req request.VerifyEmailRe
 		return oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("User is already verified")
 	}
 
-	userVerifyEmail, err := s.userRepo.GetUserVerifyEmail(req.Email)
+	userVerifyCode, err := s.userRepo.GetUserVerifyCodeByEmail(req.Email, constants.TYPE_VERIFY_EMAIL)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			s.cfg.Logger().ErrorWithContext(ctx, "[VerifyEmail] User verify email not found", zap.Error(err))
-			return oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("User verify email not found")
+			s.cfg.Logger().ErrorWithContext(ctx, "[VerifyEmail] User verify code not found", zap.Error(err))
+			return oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("User verify code not found")
 		}
 
-		s.cfg.Logger().ErrorWithContext(ctx, "[VerifyEmail] Failed to get user verify email by email", zap.Error(err))
+		s.cfg.Logger().ErrorWithContext(ctx, "[VerifyEmail] Failed to get user verify code by email", zap.Error(err))
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
 	}
 
-	if userVerifyEmail.ExpiredAt.Before(time.Now()) {
+	if userVerifyCode.ExpiredAt.Before(time.Now()) {
 		s.cfg.Logger().ErrorWithContext(ctx, "[VerifyEmail] Code has expired", zap.Error(err))
 		return oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("Code has expired")
 	}
 
-	if userVerifyEmail.Code != req.Code {
+	if userVerifyCode.Code != req.Code {
 		s.cfg.Logger().ErrorWithContext(ctx, "[VerifyEmail] Code does not match", zap.Error(err))
 		return oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("Code does not match")
 	}
@@ -251,20 +252,12 @@ func (s *authService) VerifyEmail(ctx context.Context, req request.VerifyEmailRe
 		"updated_at": time.Now(),
 	}
 
-	err = s.userRepo.UpdateUserVerifyEmailByIDTx(userVerifyEmail.ID, updateValues, tx)
+	err = s.userRepo.UpdateUserVerifyCodeByIDTx(userVerifyCode.ID, updateValues, tx)
 	if err != nil {
-		s.cfg.Logger().ErrorWithContext(ctx, "[VerifyEmail] Failed to update user verify email", zap.Error(err))
+		s.cfg.Logger().ErrorWithContext(ctx, "[VerifyEmail] Failed to update user verify code", zap.Error(err))
 		tx.Rollback()
 
-		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update user verify email")
-	}
-
-	err = s.userRepo.SetUserVerifyEmailToUsedTx(userVerifyEmail.ID, tx)
-	if err != nil {
-		s.cfg.Logger().ErrorWithContext(ctx, "[VerifyEmail] Failed to set user verify email to used", zap.Error(err))
-		tx.Rollback()
-
-		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to set user verify email to used")
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update user verify code")
 	}
 
 	err = s.userRepo.SetUserToEmailVerifiedTx(existingUser.ID, tx)
@@ -279,6 +272,96 @@ func (s *authService) VerifyEmail(ctx context.Context, req request.VerifyEmailRe
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[VerifyEmail] Failed to commit transaction", zap.Error(err))
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+	}
+
+	return nil
+}
+
+func (s *authService) ResetPassword(ctx context.Context, req request.ResetPasswordReq) (err error) {
+	//ctx, endFunc := trace.Start(ctx, "AuthService.ResetPassword", "service")
+	//defer endFunc()
+
+	existingUser, err := s.userRepo.GetByEmail(req.Email)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			s.cfg.Logger().ErrorWithContext(ctx, "[ResetPassword] User not found", zap.Error(err))
+			return oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("User not found")
+		}
+
+		s.cfg.Logger().ErrorWithContext(ctx, "[ResetPassword] Failed to get user by email", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+	}
+
+	hasedPassword, err := pkg.HashPassword(req.Password)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[ResetPassword] Failed to hash password", zap.Error(err))
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+	}
+
+	updateValues := map[string]interface{}{
+		"password":   hasedPassword,
+		"updated_by": req.Email,
+		"updated_at": time.Now(),
+	}
+
+	err = s.userRepo.UpdateUserPasswordByUserID(existingUser.ID, updateValues)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[ResetPassword] Failed to update user password", zap.Error(err))
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update user password")
+	}
+
+	return nil
+}
+
+func (s *authService) VerifyResetPassword(ctx context.Context, req request.VerifyResetPasswordReq) (err error) {
+	//ctx, endFunc := trace.Start(ctx, "AuthService.VerifyResetPassword", "service")
+	//defer endFunc()
+
+	_, err = s.userRepo.GetByEmail(req.Email)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			s.cfg.Logger().ErrorWithContext(ctx, "[VerifyResetPassword] User not found", zap.Error(err))
+			return oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("User not found")
+		}
+
+		s.cfg.Logger().ErrorWithContext(ctx, "[VerifyResetPassword] Failed to get user by email", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+	}
+
+	userVerifyCode, err := s.userRepo.GetUserVerifyCodeByEmail(req.Email, constants.TYPE_RESET_PASSWORD)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			s.cfg.Logger().ErrorWithContext(ctx, "[VerifyResetPassword] User verify code not found", zap.Error(err))
+			return oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("User verify code not found")
+		}
+
+		s.cfg.Logger().ErrorWithContext(ctx, "[VerifyResetPassword] Failed to get user verify code by email", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+	}
+
+	if userVerifyCode.ExpiredAt.Before(time.Now()) {
+		s.cfg.Logger().ErrorWithContext(ctx, "[VerifyResetPassword] Code has expired", zap.Error(err))
+		return oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("Code has expired")
+	}
+
+	if userVerifyCode.Code != req.Code {
+		s.cfg.Logger().ErrorWithContext(ctx, "[VerifyResetPassword] Code does not match", zap.Error(err))
+		return oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("Code does not match")
+	}
+
+	updateValues := map[string]interface{}{
+		"is_used":    true,
+		"updated_by": req.Email,
+		"updated_at": time.Now(),
+	}
+
+	err = s.userRepo.UpdateUserVerifyCodeByID(userVerifyCode.ID, updateValues)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[VerifyResetPassword] Failed to update user verify code", zap.Error(err))
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update user verify code")
 	}
 
 	return nil

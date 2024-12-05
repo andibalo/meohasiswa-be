@@ -32,6 +32,8 @@ func (h *AuthController) AddRoutes(r *gin.Engine) {
 	ar.POST("/register", h.Register)
 	ar.POST("/login", h.Login)
 	ar.POST("/verify-email", h.VerifyEmail)
+	ar.PATCH("/reset-password", h.ResetPassword)
+	ar.PATCH("/reset-password/code/verify", h.VerifyResetPassword)
 }
 
 func (h *AuthController) Register(c *gin.Context) {
@@ -95,6 +97,52 @@ func (h *AuthController) VerifyEmail(c *gin.Context) {
 	err := h.authSvc.VerifyEmail(c.Request.Context(), data)
 	if err != nil {
 		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[VerifyEmail] Failed to verify email", zap.Error(err))
+		httpresp.HttpRespError(c, err)
+		return
+	}
+
+	httpresp.HttpRespSuccess(c, nil, nil)
+	return
+}
+
+func (h *AuthController) ResetPassword(c *gin.Context) {
+	//_, endFunc := trace.Start(c.Copy().Request.Context(), "AuthController.ResetPassword", "controller")
+	//defer endFunc()
+
+	var data request.ResetPasswordReq
+
+	if err := c.ShouldBindJSON(&data); err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[ResetPassword] Failed to bind json", zap.Error(err))
+		httpresp.HttpRespError(c, oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf(apperr.ErrBadRequest))
+		return
+	}
+
+	err := h.authSvc.ResetPassword(c.Request.Context(), data)
+	if err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[ResetPassword] Failed to reset password", zap.Error(err))
+		httpresp.HttpRespError(c, err)
+		return
+	}
+
+	httpresp.HttpRespSuccess(c, nil, nil)
+	return
+}
+
+func (h *AuthController) VerifyResetPassword(c *gin.Context) {
+	//_, endFunc := trace.Start(c.Copy().Request.Context(), "AuthController.VerifyResetPassword", "controller")
+	//defer endFunc()
+
+	var data request.VerifyResetPasswordReq
+
+	if err := c.ShouldBindJSON(&data); err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[VerifyResetPassword] Failed to bind json", zap.Error(err))
+		httpresp.HttpRespError(c, oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf(apperr.ErrBadRequest))
+		return
+	}
+
+	err := h.authSvc.VerifyResetPassword(c.Request.Context(), data)
+	if err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[VerifyResetPassword] Failed to verify reset password code", zap.Error(err))
 		httpresp.HttpRespError(c, err)
 		return
 	}

@@ -28,11 +28,12 @@ type User struct {
 	DeletedAt          time.Time    `bun:",nullzero,soft_delete" json:"-"`
 }
 
-type UserVerifyEmail struct {
-	bun.BaseModel `bun:"table:user_verify_email,alias:uve"`
+type UserVerifyCode struct {
+	bun.BaseModel `bun:"table:user_verify_code,alias:uvc"`
 
 	ID        string
 	UserID    string
+	Type      string
 	Code      string
 	Email     string
 	IsUsed    bool

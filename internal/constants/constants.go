@@ -18,10 +18,15 @@ const (
 )
 
 // notification
-
 const (
 	EVENT_TYPE_KEY = "event_type"
 	APP_ROUTE_KEY  = "route"
 
 	COMMENT_ON_THREAD_EVENT = "COMMENT_ON_THREAD"
+)
+
+// email
+const (
+	TYPE_VERIFY_EMAIL   = "VERIFY_EMAIL"
+	TYPE_RESET_PASSWORD = "RESET_PASSWORD"
 )

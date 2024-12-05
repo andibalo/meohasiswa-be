@@ -47,11 +47,11 @@ func (r *userRepository) SaveUserDevice(userDevice *model.UserDevice) error {
 	return nil
 }
 
-func (r *userRepository) UpdateUserVerifyEmailByIDTx(id string, updateValues map[string]interface{}, tx bun.Tx) error {
+func (r *userRepository) UpdateUserVerifyCodeByID(id string, updateValues map[string]interface{}) error {
 
-	_, err := tx.NewUpdate().
+	_, err := r.db.NewUpdate().
 		Model(&updateValues).
-		TableExpr("user_verify_email").
+		TableExpr("user_verify_code").
 		Where("id = ?", id).
 		Exec(context.Background())
 	if err != nil {
@@ -61,12 +61,41 @@ func (r *userRepository) UpdateUserVerifyEmailByIDTx(id string, updateValues map
 	return nil
 }
 
-func (r *userRepository) GetUserVerifyEmail(email string) (*model.UserVerifyEmail, error) {
-	userVerifyEmail := &model.UserVerifyEmail{}
+func (r *userRepository) UpdateUserVerifyCodeByIDTx(id string, updateValues map[string]interface{}, tx bun.Tx) error {
+
+	_, err := tx.NewUpdate().
+		Model(&updateValues).
+		TableExpr("user_verify_code").
+		Where("id = ?", id).
+		Exec(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *userRepository) UpdateUserPasswordByUserID(id string, updateValues map[string]interface{}) error {
+
+	_, err := r.db.NewUpdate().
+		Model(&updateValues).
+		Table("user").
+		Where("id = ?", id).
+		Exec(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *userRepository) GetUserVerifyCodeByEmail(email string, verifyCodeType string) (*model.UserVerifyCode, error) {
+	userVerifyCode := &model.UserVerifyCode{}
 
 	err := r.db.NewSelect().
-		Model(userVerifyEmail).
+		Model(userVerifyCode).
 		Where("email = ?", email).
+		Where("type = ?", verifyCodeType).
 		Order("created_at desc").
 		Limit(1).
 		Scan(context.Background())
@@ -75,7 +104,7 @@ func (r *userRepository) GetUserVerifyEmail(email string) (*model.UserVerifyEmai
 		return nil, err
 	}
 
-	return userVerifyEmail, nil
+	return userVerifyCode, nil
 }
 
 func (r *userRepository) GetUserProfileByEmail(email string) (*model.User, error) {
@@ -145,9 +174,9 @@ func (r *userRepository) GetUserDevices(req request.GetUserDevicesReq) ([]model.
 	return userDevices, nil
 }
 
-func (r *userRepository) SaveUserVerifyEmailTx(userVerifyEmail *model.UserVerifyEmail, tx bun.Tx) error {
+func (r *userRepository) SaveUserVerifyCodeTx(userVerifyCode *model.UserVerifyCode, tx bun.Tx) error {
 
-	_, err := tx.NewInsert().Model(userVerifyEmail).Exec(context.Background())
+	_, err := tx.NewInsert().Model(userVerifyCode).Exec(context.Background())
 	if err != nil {
 		return err
 	}
@@ -155,15 +184,19 @@ func (r *userRepository) SaveUserVerifyEmailTx(userVerifyEmail *model.UserVerify
 	return nil
 }
 
-func (r *userRepository) GetUserVerifyEmailByID(id string) (*model.UserVerifyEmail, error) {
-	userVerifyEmail := &model.UserVerifyEmail{}
+func (r *userRepository) GetUserVerifyCodeByID(id string, verifyCodeType string) (*model.UserVerifyCode, error) {
+	userVerifyCode := &model.UserVerifyCode{}
 
-	err := r.db.NewSelect().Model(userVerifyEmail).Where("id = ?", id).Scan(context.Background())
+	err := r.db.NewSelect().
+		Model(userVerifyCode).
+		Where("id = ?", id).
+		Where("type = ?", verifyCodeType).
+		Scan(context.Background())
 	if err != nil {
 		return nil, err
 	}
 
-	return userVerifyEmail, nil
+	return userVerifyCode, nil
 }
 
 func (r *userRepository) SetUserToEmailVerifiedTx(id string, tx bun.Tx) error {
@@ -183,12 +216,12 @@ func (r *userRepository) SetUserToEmailVerifiedTx(id string, tx bun.Tx) error {
 	return nil
 }
 
-func (r *userRepository) SetUserVerifyEmailToUsedTx(id string, tx bun.Tx) error {
-	userVerifyEmail := &model.UserVerifyEmail{}
-	userVerifyEmail.IsUsed = true
+func (r *userRepository) SetUserVerifyCodeToUsedTx(id string, tx bun.Tx) error {
+	userVerifyCode := &model.UserVerifyCode{}
+	userVerifyCode.IsUsed = true
 
 	_, err := tx.NewUpdate().
-		Model(userVerifyEmail).
+		Model(userVerifyCode).
 		Column("is_used").
 		Where("id = ?", id).
 		Exec(context.Background())

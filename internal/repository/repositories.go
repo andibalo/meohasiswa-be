@@ -16,13 +16,15 @@ type UserRepository interface {
 	GetByID(id string) (*model.User, error)
 	GetUserDevices(req request.GetUserDevicesReq) ([]model.UserDevice, error)
 	GetByEmail(email string) (*model.User, error)
-	SaveUserVerifyEmailTx(userVerifyEmail *model.UserVerifyEmail, tx bun.Tx) error
+	SaveUserVerifyCodeTx(userVerifyCode *model.UserVerifyCode, tx bun.Tx) error
 	SetUserToEmailVerifiedTx(id string, tx bun.Tx) error
-	GetUserVerifyEmailByID(id string) (*model.UserVerifyEmail, error)
-	SetUserVerifyEmailToUsedTx(id string, tx bun.Tx) error
+	GetUserVerifyCodeByID(id string, verifyCodeType string) (*model.UserVerifyCode, error)
+	SetUserVerifyCodeToUsedTx(id string, tx bun.Tx) error
 	SetUserHasRateUniversityTx(id string, hru bool, tx bun.Tx) error
-	GetUserVerifyEmail(email string) (*model.UserVerifyEmail, error)
-	UpdateUserVerifyEmailByIDTx(id string, updateValues map[string]interface{}, tx bun.Tx) error
+	GetUserVerifyCodeByEmail(email string, verifyCodeType string) (*model.UserVerifyCode, error)
+	UpdateUserVerifyCodeByID(id string, updateValues map[string]interface{}) error
+	UpdateUserVerifyCodeByIDTx(id string, updateValues map[string]interface{}, tx bun.Tx) error
+	UpdateUserPasswordByUserID(id string, updateValues map[string]interface{}) error
 }
 
 type SubThreadRepository interface {
