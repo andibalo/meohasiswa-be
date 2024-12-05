@@ -238,6 +238,98 @@
 					"response": []
 				},
 				{
+					"name": "Subscribe Thread",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/thread/subscribe/:thread_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"thread",
+								"subscribe",
+								":thread_id"
+							],
+							"variable": [
+								{
+									"key": "thread_id",
+									"value": "3940cf54-4ae3-47ee-b8e6-e344206e6d9a"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Unsubscribe Thread",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/thread/unsubscribe/:thread_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"thread",
+								"unsubscribe",
+								":thread_id"
+							],
+							"variable": [
+								{
+									"key": "thread_id",
+									"value": "3940cf54-4ae3-47ee-b8e6-e344206e6d9a"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Update Thread Comment",
 					"request": {
 						"auth": {
@@ -714,7 +806,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJBRE1JTiIsInVzZXJuYW1lIjoiaW5jb25zaXN0ZW5jZSJ9.YecRGwH2I-Dc8izWIgQEsgDQwhXX28TtSgEMP_lBx3I",
 									"type": "string"
 								}
 							]
@@ -722,7 +814,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/api/v1/subthread?is_following=true&_q=test",
+							"raw": "{{base_url}}/api/v1/subthread?should_exclude_following=true",
 							"host": [
 								"{{base_url}}"
 							],
@@ -744,11 +836,13 @@
 								},
 								{
 									"key": "is_following",
-									"value": "true"
+									"value": "true",
+									"disabled": true
 								},
 								{
 									"key": "_q",
-									"value": "test"
+									"value": "test",
+									"disabled": true
 								},
 								{
 									"key": "include_university_subthread",
@@ -757,8 +851,7 @@
 								},
 								{
 									"key": "should_exclude_following",
-									"value": "true",
-									"disabled": true
+									"value": "true"
 								}
 							]
 						}
@@ -820,7 +913,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"subthread_id\": \"7a1311cd-a25e-4270-84e7-7d37774502cf\",\r\n    \"user_id\": \"f3cb8535-9977-4a1c-874a-2c0e1bed503d\"\r\n}",
+							"raw": "{\r\n    \"subthread_id\": \"c1a2f145-d7cb-4c2a-80e4-937de53697c1\",\r\n    \"user_id\": \"f3cb8535-9977-4a1c-874a-2c0e1bed503d\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -850,7 +943,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJBRE1JTiIsInVzZXJuYW1lIjoiaW5jb25zaXN0ZW5jZSJ9.YecRGwH2I-Dc8izWIgQEsgDQwhXX28TtSgEMP_lBx3I",
 									"type": "string"
 								}
 							]
@@ -1297,7 +1390,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\": \"fesfes\",\r\n    \"email\": \"abdullah.asep@student.umn.ac.id\",\r\n    \"password\": \"test\"\r\n}",
+							"raw": "{\r\n    \"username\": \"fesfes\",\r\n    \"email\": \"abdullah.asep@student.prasetiyamulya.ac.id\",\r\n    \"password\": \"test\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1326,7 +1419,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    // \"email\": \"andi.usman@student.umn.ac.id\",\r\n    \"email\": \"test4@student.umn.ac.id\",\r\n    \"password\": \"test\"\r\n}",
+							"raw": "{\r\n    \"email\": \"andi.usman@student.umn.ac.id\",\r\n    // \"email\": \"test4@student.umn.ac.id\",\r\n    \"password\": \"test\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
