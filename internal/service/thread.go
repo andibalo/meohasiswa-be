@@ -232,12 +232,18 @@ func (s *threadService) GetThreadDetail(ctx context.Context, req request.GetThre
 		return resp, oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to get user last thread activity")
 	}
 
-	resp.Data = s.mapThreadDetailData(thread, ta)
+	ts, err := s.threadRepo.GetThreadSubscriptionByUserAndThreadID(req.UserID, req.ThreadID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		s.cfg.Logger().ErrorWithContext(ctx, "[GetThreadDetail] Failed to get user thread subscription", zap.Error(err))
+		return resp, oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to get user thread subscription")
+	}
+
+	resp.Data = s.mapThreadDetailData(thread, ta, ts)
 
 	return resp, nil
 }
 
-func (s *threadService) mapThreadDetailData(thread model.Thread, threadActivity *model.ThreadActivity) response.ThreadDetailData {
+func (s *threadService) mapThreadDetailData(thread model.Thread, threadActivity *model.ThreadActivity, threadSubscription model.ThreadSubscription) response.ThreadDetailData {
 
 	td := response.ThreadDetailData{
 		ID:             thread.ID,
@@ -272,6 +278,10 @@ func (s *threadService) mapThreadDetailData(thread model.Thread, threadActivity 
 		if threadActivity.Action == constants.DISLIKE_ACTION {
 			td.IsDisliked = true
 		}
+	}
+
+	if threadSubscription.ID != "" && threadSubscription.IsSubscribed {
+		td.IsSubscribed = true
 	}
 
 	return td

@@ -52,6 +52,7 @@ type ThreadDetailData struct {
 	CommentCount              int64        `json:"comment_count"`
 	IsLiked                   bool         `json:"is_liked"`
 	IsDisliked                bool         `json:"is_disliked"`
+	IsSubscribed              bool         `json:"is_subscribed"`
 	CreatedBy                 string       `json:"created_by"`
 	CreatedAt                 time.Time    `json:"created_at"`
 	UpdatedBy                 *string      `json:"updated_by"`
