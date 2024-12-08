@@ -308,6 +308,7 @@ func (s *threadService) LikeThread(ctx context.Context, req request.LikeThreadRe
 		err = s.unlikeThread(ctx, req, tx)
 		if err != nil {
 			s.cfg.Logger().ErrorWithContext(ctx, "[LikeThread] Failed to unlike thread", zap.Error(err))
+			tx.Rollback()
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to unlike thread")
 		}
 
@@ -325,7 +326,7 @@ func (s *threadService) LikeThread(ctx context.Context, req request.LikeThreadRe
 		err = s.threadRepo.DecrementDislikesCountTx(req.ThreadID, tx)
 		if err != nil {
 			s.cfg.Logger().ErrorWithContext(ctx, "[LikeThread] Failed to decrement thread dislikes count", zap.Error(err))
-
+			tx.Rollback()
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to decrement thread dislikes count")
 		}
 	}
@@ -333,7 +334,7 @@ func (s *threadService) LikeThread(ctx context.Context, req request.LikeThreadRe
 	err = s.threadRepo.IncrementLikesCountTx(req.ThreadID, tx)
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[LikeThread] Failed to increment thread likes count", zap.Error(err))
-
+		tx.Rollback()
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to increment thread likes count")
 	}
 
@@ -348,7 +349,7 @@ func (s *threadService) LikeThread(ctx context.Context, req request.LikeThreadRe
 		err = s.threadRepo.UpdateThreadActivityTx(req.ThreadID, req.UserID, updateValues, tx)
 		if err != nil {
 			s.cfg.Logger().ErrorWithContext(ctx, "[LikeThread] Failed to update thread activity", zap.Error(err))
-
+			tx.Rollback()
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update thread activity")
 		}
 
@@ -376,7 +377,7 @@ func (s *threadService) LikeThread(ctx context.Context, req request.LikeThreadRe
 	err = s.threadRepo.SaveThreadActivityTx(threadActivity, tx)
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[LikeThread] Failed to save thread activity", zap.Error(err))
-
+		tx.Rollback()
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to save thread activity")
 	}
 
@@ -458,6 +459,7 @@ func (s *threadService) DislikeThread(ctx context.Context, req request.DislikeTh
 		err = s.unDislikeThread(ctx, req, tx)
 		if err != nil {
 			s.cfg.Logger().ErrorWithContext(ctx, "[DislikeThread] Failed to undislike thread", zap.Error(err))
+			tx.Rollback()
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to undislike thread")
 		}
 
@@ -475,7 +477,7 @@ func (s *threadService) DislikeThread(ctx context.Context, req request.DislikeTh
 		err = s.threadRepo.DecrementLikesCountTx(req.ThreadID, tx)
 		if err != nil {
 			s.cfg.Logger().ErrorWithContext(ctx, "[DislikeThread] Failed to decrement thread likes count", zap.Error(err))
-
+			tx.Rollback()
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to decrement thread likes count")
 		}
 	}
@@ -483,7 +485,7 @@ func (s *threadService) DislikeThread(ctx context.Context, req request.DislikeTh
 	err = s.threadRepo.IncrementDislikesCountTx(req.ThreadID, tx)
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[DislikeThread] Failed to increment thread dislikes count", zap.Error(err))
-
+		tx.Rollback()
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to increment thread dislikes count")
 	}
 
@@ -498,7 +500,7 @@ func (s *threadService) DislikeThread(ctx context.Context, req request.DislikeTh
 		err = s.threadRepo.UpdateThreadActivityTx(req.ThreadID, req.UserID, updateValues, tx)
 		if err != nil {
 			s.cfg.Logger().ErrorWithContext(ctx, "[DislikeThread] Failed to update thread activity", zap.Error(err))
-
+			tx.Rollback()
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update thread activity")
 		}
 
@@ -526,7 +528,7 @@ func (s *threadService) DislikeThread(ctx context.Context, req request.DislikeTh
 	err = s.threadRepo.SaveThreadActivityTx(threadActivity, tx)
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[DislikeThread] Failed to save thread activity", zap.Error(err))
-
+		tx.Rollback()
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to save thread activity")
 	}
 
@@ -609,7 +611,7 @@ func (s *threadService) CommentThread(ctx context.Context, req request.CommentTh
 	err = s.threadRepo.IncrementCommentsCountTx(req.ThreadID, tx)
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[CommentThread] Failed to increment thread comments count", zap.Error(err))
-
+		tx.Rollback()
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to increment thread comments count")
 	}
 
@@ -624,7 +626,7 @@ func (s *threadService) CommentThread(ctx context.Context, req request.CommentTh
 	err = s.threadRepo.SaveThreadCommentTx(threadComment, tx)
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[CommentThread] Failed to save thread comment", zap.Error(err))
-
+		tx.Rollback()
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to save thread comment")
 	}
 
@@ -679,8 +681,15 @@ func (s *threadService) ReplyComment(ctx context.Context, req request.ReplyComme
 	err = s.threadRepo.IncrementCommentReplyCountTx(req.CommentID, tx)
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[ReplyComment] Failed to increment comment reply count", zap.Error(err))
-
+		tx.Rollback()
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to increment comment reply count")
+	}
+
+	err = s.threadRepo.IncrementCommentsCountTx(req.ThreadID, tx)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[ReplyComment] Failed to increment thread comments count", zap.Error(err))
+		tx.Rollback()
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to increment thread comments count")
 	}
 
 	threadCommentReply := &model.ThreadCommentReply{
@@ -695,7 +704,7 @@ func (s *threadService) ReplyComment(ctx context.Context, req request.ReplyComme
 	err = s.threadRepo.SaveCommentReplyTx(threadCommentReply, tx)
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[ReplyComment] Failed to save thread comment reply", zap.Error(err))
-
+		tx.Rollback()
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to save thread comment reply")
 	}
 
@@ -740,6 +749,7 @@ func (s *threadService) LikeComment(ctx context.Context, req request.LikeComment
 		err = s.unlikeComment(ctx, req, tx)
 		if err != nil {
 			s.cfg.Logger().ErrorWithContext(ctx, "[LikeComment] Failed to unlike comment", zap.Error(err))
+			tx.Rollback()
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to unlike comment")
 		}
 
@@ -757,7 +767,7 @@ func (s *threadService) LikeComment(ctx context.Context, req request.LikeComment
 		err = s.threadRepo.DecrementCommentDislikesCountTx(req.CommentID, tx)
 		if err != nil {
 			s.cfg.Logger().ErrorWithContext(ctx, "[LikeComment] Failed to decrement comment dislikes count", zap.Error(err))
-
+			tx.Rollback()
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to decrement comment dislikes count")
 		}
 	}
@@ -765,7 +775,7 @@ func (s *threadService) LikeComment(ctx context.Context, req request.LikeComment
 	err = s.threadRepo.IncrementCommentLikesCountTx(req.CommentID, tx)
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[LikeComment] Failed to increment comment likes count", zap.Error(err))
-
+		tx.Rollback()
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to increment comment likes count")
 	}
 
@@ -780,7 +790,7 @@ func (s *threadService) LikeComment(ctx context.Context, req request.LikeComment
 		err = s.threadRepo.UpdateThreadCommentActivityTx(req.CommentID, req.UserID, updateValues, tx)
 		if err != nil {
 			s.cfg.Logger().ErrorWithContext(ctx, "[LikeComment] Failed to update thread comment activity", zap.Error(err))
-
+			tx.Rollback()
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update thread comment activity")
 		}
 
@@ -855,6 +865,7 @@ func (s *threadService) likeCommentReply(ctx context.Context, req request.LikeCo
 		err = s.unlikeCommentReply(ctx, req, tx)
 		if err != nil {
 			s.cfg.Logger().ErrorWithContext(ctx, "[likeCommentReply] Failed to unlike comment reply", zap.Error(err))
+			tx.Rollback()
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to unlike comment reply")
 		}
 
@@ -872,7 +883,7 @@ func (s *threadService) likeCommentReply(ctx context.Context, req request.LikeCo
 		err = s.threadRepo.DecrementCommentReplyDislikesCountTx(req.CommentID, tx)
 		if err != nil {
 			s.cfg.Logger().ErrorWithContext(ctx, "[likeCommentReply] Failed to decrement comment reply dislikes count", zap.Error(err))
-
+			tx.Rollback()
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to decrement comment reply dislikes count")
 		}
 	}
@@ -880,7 +891,7 @@ func (s *threadService) likeCommentReply(ctx context.Context, req request.LikeCo
 	err = s.threadRepo.IncrementCommentReplyLikesCountTx(req.CommentID, tx)
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[likeCommentReply] Failed to increment comment reply likes count", zap.Error(err))
-
+		tx.Rollback()
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to increment comment reply likes count")
 	}
 
@@ -895,7 +906,7 @@ func (s *threadService) likeCommentReply(ctx context.Context, req request.LikeCo
 		err = s.threadRepo.UpdateThreadCommentActivityReplyTx(req.CommentID, req.UserID, updateValues, tx)
 		if err != nil {
 			s.cfg.Logger().ErrorWithContext(ctx, "[likeCommentReply] Failed to update thread comment reply activity", zap.Error(err))
-
+			tx.Rollback()
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update thread comment reply activity")
 		}
 
@@ -925,7 +936,7 @@ func (s *threadService) likeCommentReply(ctx context.Context, req request.LikeCo
 	err = s.threadRepo.SaveThreadCommentActivityTx(threadActivity, tx)
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[likeCommentReply] Failed to save thread comment reply activity", zap.Error(err))
-
+		tx.Rollback()
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to save thread comment reply activity")
 	}
 
@@ -1066,6 +1077,7 @@ func (s *threadService) DislikeComment(ctx context.Context, req request.DislikeC
 		err = s.unDislikeComment(ctx, req, tx)
 		if err != nil {
 			s.cfg.Logger().ErrorWithContext(ctx, "[DislikeComment] Failed to undislike comment", zap.Error(err))
+			tx.Rollback()
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to undislike comment")
 		}
 
@@ -1083,7 +1095,7 @@ func (s *threadService) DislikeComment(ctx context.Context, req request.DislikeC
 		err = s.threadRepo.DecrementCommentLikesCountTx(req.CommentID, tx)
 		if err != nil {
 			s.cfg.Logger().ErrorWithContext(ctx, "[DislikeComment] Failed to decrement thread comment likes count", zap.Error(err))
-
+			tx.Rollback()
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to decrement thread comment likes count")
 		}
 	}
@@ -1091,7 +1103,7 @@ func (s *threadService) DislikeComment(ctx context.Context, req request.DislikeC
 	err = s.threadRepo.IncrementCommentDislikesCountTx(req.CommentID, tx)
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[DislikeComment] Failed to increment thread comment dislikes count", zap.Error(err))
-
+		tx.Rollback()
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to increment thread comment dislikes count")
 	}
 
@@ -1106,7 +1118,7 @@ func (s *threadService) DislikeComment(ctx context.Context, req request.DislikeC
 		err = s.threadRepo.UpdateThreadCommentActivityTx(req.CommentID, req.UserID, updateValues, tx)
 		if err != nil {
 			s.cfg.Logger().ErrorWithContext(ctx, "[DislikeComment] Failed to update thread comment activity", zap.Error(err))
-
+			tx.Rollback()
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update thread comment activity")
 		}
 
@@ -1135,7 +1147,7 @@ func (s *threadService) DislikeComment(ctx context.Context, req request.DislikeC
 	err = s.threadRepo.SaveThreadCommentActivityTx(threadCommentActivity, tx)
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[DislikeComment] Failed to save thread comment activity", zap.Error(err))
-
+		tx.Rollback()
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to save thread comment activity")
 	}
 
@@ -1210,6 +1222,7 @@ func (s *threadService) dislikeCommentReply(ctx context.Context, req request.Dis
 		err = s.unDislikeCommentReply(ctx, req, tx)
 		if err != nil {
 			s.cfg.Logger().ErrorWithContext(ctx, "[dislikeCommentReply] Failed to undislike comment reply", zap.Error(err))
+			tx.Rollback()
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to undislike comment reply")
 		}
 
@@ -1227,7 +1240,7 @@ func (s *threadService) dislikeCommentReply(ctx context.Context, req request.Dis
 		err = s.threadRepo.DecrementCommentReplyLikesCountTx(req.CommentID, tx)
 		if err != nil {
 			s.cfg.Logger().ErrorWithContext(ctx, "[dislikeCommentReply] Failed to decrement thread comment reply likes count", zap.Error(err))
-
+			tx.Rollback()
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to decrement thread comment reply likes count")
 		}
 	}
@@ -1235,7 +1248,7 @@ func (s *threadService) dislikeCommentReply(ctx context.Context, req request.Dis
 	err = s.threadRepo.IncrementCommentReplyDislikesCountTx(req.CommentID, tx)
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[dislikeCommentReply] Failed to increment thread comment reply dislikes count", zap.Error(err))
-
+		tx.Rollback()
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to increment thread comment reply dislikes count")
 	}
 
@@ -1250,7 +1263,7 @@ func (s *threadService) dislikeCommentReply(ctx context.Context, req request.Dis
 		err = s.threadRepo.UpdateThreadCommentActivityReplyTx(req.CommentID, req.UserID, updateValues, tx)
 		if err != nil {
 			s.cfg.Logger().ErrorWithContext(ctx, "[dislikeCommentReply] Failed to update thread comment reply activity", zap.Error(err))
-
+			tx.Rollback()
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update thread comment reply activity")
 		}
 
@@ -1280,7 +1293,7 @@ func (s *threadService) dislikeCommentReply(ctx context.Context, req request.Dis
 	err = s.threadRepo.SaveThreadCommentActivityTx(threadCommentActivity, tx)
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[dislikeCommentReply] Failed to save thread comment reply activity", zap.Error(err))
-
+		tx.Rollback()
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to save thread comment reply activity")
 	}
 
@@ -1424,7 +1437,7 @@ func (s *threadService) DeleteThreadComment(ctx context.Context, req request.Del
 	//ctx, endFunc := trace.Start(ctx, "ThreadService.DeleteThreadComment", "service")
 	//defer endFunc()
 
-	_, err := s.threadRepo.GetThreadCommentByID(req.CommentID)
+	tc, err := s.threadRepo.GetThreadCommentByID(req.CommentID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			s.cfg.Logger().ErrorWithContext(ctx, "[DeleteThreadComment] Thread comment not found", zap.Error(err))
@@ -1435,17 +1448,36 @@ func (s *threadService) DeleteThreadComment(ctx context.Context, req request.Del
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to delete thread comment by id")
 	}
 
+	tx, err := s.db.Begin()
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[DeleteThreadComment] Failed to begin transaction", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+	}
+
 	updateValues := map[string]interface{}{
 		"deleted_by": req.UserEmail,
 		"deleted_at": time.Now(),
 	}
 
-	err = s.threadRepo.DeleteThreadCommentByID(req.CommentID, updateValues)
+	err = s.threadRepo.DeleteThreadCommentByIDTx(req.CommentID, updateValues, tx)
 
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[DeleteThreadComment] Failed to delete thread comment in database", zap.Error(err))
-
+		tx.Rollback()
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to delete thread comment")
+	}
+
+	err = s.threadRepo.DecrementCommentsCountTx(tc.ThreadID, tx)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[DeleteThreadComment] Failed to decrement thread comments count", zap.Error(err))
+		tx.Rollback()
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to decrement thread comments count")
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[DeleteThreadComment] Failed to commit transaction", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
 	}
 
 	return nil
@@ -1487,7 +1519,7 @@ func (s *threadService) DeleteThreadCommentReply(ctx context.Context, req reques
 	//ctx, endFunc := trace.Start(ctx, "ThreadService.DeleteThreadCommentReply", "service")
 	//defer endFunc()
 
-	_, err := s.threadRepo.GetThreadCommentReplyByID(req.CommentID)
+	tcr, err := s.threadRepo.GetThreadCommentReplyByID(req.CommentID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			s.cfg.Logger().ErrorWithContext(ctx, "[DeleteThreadCommentReply] Thread comment reply not found", zap.Error(err))
@@ -1498,17 +1530,36 @@ func (s *threadService) DeleteThreadCommentReply(ctx context.Context, req reques
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to delete thread comment reply by id")
 	}
 
+	tx, err := s.db.Begin()
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[DeleteThreadCommentReply] Failed to begin transaction", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+	}
+
 	updateValues := map[string]interface{}{
 		"deleted_by": req.UserEmail,
 		"deleted_at": time.Now(),
 	}
 
-	err = s.threadRepo.DeleteThreadCommentReplyByID(req.CommentID, updateValues)
+	err = s.threadRepo.DeleteThreadCommentReplyByIDTx(req.CommentID, updateValues, tx)
 
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[DeleteThreadCommentReply] Failed to delete thread comment reply in database", zap.Error(err))
-
+		tx.Rollback()
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to delete thread reply comment")
+	}
+
+	err = s.threadRepo.DecrementCommentsCountTx(tcr.ThreadID, tx)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[DeleteThreadCommentReply] Failed to decrement thread comments count", zap.Error(err))
+		tx.Rollback()
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to decrement thread comments count")
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[DeleteThreadCommentReply] Failed to commit transaction", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
 	}
 
 	return nil

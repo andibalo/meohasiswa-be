@@ -71,6 +71,18 @@ func (r *threadRepository) IncrementCommentsCountTx(threadID string, tx bun.Tx) 
 	return nil
 }
 
+func (r *threadRepository) DecrementCommentsCountTx(threadID string, tx bun.Tx) error {
+
+	_, err := tx.NewRaw("UPDATE thread SET comment_count = comment_count - 1 WHERE id = ?", threadID).
+		Exec(context.Background())
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *threadRepository) IncrementLikesCountTx(threadID string, tx bun.Tx) error {
 
 	_, err := tx.NewRaw("UPDATE thread SET like_count = like_count + 1 WHERE id = ?", threadID).
@@ -608,6 +620,20 @@ func (r *threadRepository) DeleteThreadCommentByID(threadCommentID string, updat
 	return nil
 }
 
+func (r *threadRepository) DeleteThreadCommentByIDTx(threadCommentID string, updateValues map[string]interface{}, tx bun.Tx) error {
+
+	_, err := tx.NewUpdate().
+		Model(&updateValues).
+		TableExpr("thread_comment").
+		Where("id = ?", threadCommentID).
+		Exec(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *threadRepository) UpdateThreadCommentByID(threadCommentID string, updateValues map[string]interface{}) error {
 
 	_, err := r.db.NewUpdate().
@@ -625,6 +651,20 @@ func (r *threadRepository) UpdateThreadCommentByID(threadCommentID string, updat
 func (r *threadRepository) DeleteThreadCommentReplyByID(threadCommentReplyID string, updateValues map[string]interface{}) error {
 
 	_, err := r.db.NewUpdate().
+		Model(&updateValues).
+		TableExpr("thread_comment_reply").
+		Where("id = ?", threadCommentReplyID).
+		Exec(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *threadRepository) DeleteThreadCommentReplyByIDTx(threadCommentReplyID string, updateValues map[string]interface{}, tx bun.Tx) error {
+
+	_, err := tx.NewUpdate().
 		Model(&updateValues).
 		TableExpr("thread_comment_reply").
 		Where("id = ?", threadCommentReplyID).

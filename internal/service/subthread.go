@@ -222,6 +222,7 @@ func (s *subThreadService) FollowSubThread(ctx context.Context, req request.Foll
 	err = s.subThreadRepo.IncrementFollowersCountTx(req.SubThreadID, tx)
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[FollowSubThread] Failed to increment subthread followers count", zap.Error(err))
+		tx.Rollback()
 
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to increment subthread followers count")
 	}
@@ -231,7 +232,7 @@ func (s *subThreadService) FollowSubThread(ctx context.Context, req request.Foll
 		err = s.subThreadRepo.UpdateSubThreadFollowerIsFollowingTx(stf.ID, true, tx)
 		if err != nil {
 			s.cfg.Logger().ErrorWithContext(ctx, "[FollowSubThread] Failed to update subthread follower", zap.Error(err))
-
+			tx.Rollback()
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update subthread follower")
 		}
 
@@ -240,7 +241,7 @@ func (s *subThreadService) FollowSubThread(ctx context.Context, req request.Foll
 		err = s.subThreadRepo.SaveSubThreadFollowerTx(subThreadFollower, tx)
 		if err != nil {
 			s.cfg.Logger().ErrorWithContext(ctx, "[FollowSubThread] Failed to save subthread follower", zap.Error(err))
-
+			tx.Rollback()
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to save subthread follower")
 		}
 	}
@@ -283,14 +284,14 @@ func (s *subThreadService) UnFollowSubThread(ctx context.Context, req request.Un
 	err = s.subThreadRepo.DecrementFollowersCountTx(req.SubThreadID, tx)
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[UnFollowSubThread] Failed to decrement subthread followers count", zap.Error(err))
-
+		tx.Rollback()
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to decrement subthread followers count")
 	}
 
 	err = s.subThreadRepo.UpdateSubThreadFollowerIsFollowingTx(stf.ID, false, tx)
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[UnFollowSubThread] Failed to update subthread follower", zap.Error(err))
-
+		tx.Rollback()
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update subthread follower")
 	}
 

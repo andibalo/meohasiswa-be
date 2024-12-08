@@ -113,7 +113,7 @@ func (s *universityService) CreateUniversityRating(ctx context.Context, req requ
 
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[CreateUniversityRating] Failed to insert university rating to database", zap.Error(err))
-
+		tx.Rollback()
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to create university rating")
 	}
 
@@ -143,7 +143,7 @@ func (s *universityService) CreateUniversityRating(ctx context.Context, req requ
 
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[CreateUniversityRating] Failed to insert university rating points to database", zap.Error(err))
-
+		tx.Rollback()
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to create university rating pros and cons")
 	}
 
@@ -151,7 +151,7 @@ func (s *universityService) CreateUniversityRating(ctx context.Context, req requ
 
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[CreateUniversityRating] Failed to update user data has rate university", zap.Error(err))
-
+		tx.Rollback()
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update user data")
 	}
 
@@ -237,7 +237,7 @@ func (s *universityService) UpdateUniversityRating(ctx context.Context, req requ
 
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[UpdateUniversityRating] Failed to update university rating in database", zap.Error(err))
-
+		tx.Rollback()
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update university rating")
 	}
 
@@ -245,7 +245,7 @@ func (s *universityService) UpdateUniversityRating(ctx context.Context, req requ
 
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[UpdateUniversityRating] Failed to delete university rating points in database", zap.Error(err))
-
+		tx.Rollback()
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to delete university rating points")
 	}
 
@@ -275,7 +275,7 @@ func (s *universityService) UpdateUniversityRating(ctx context.Context, req requ
 
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[UpdateUniversityRating] Failed to insert university rating points to database", zap.Error(err))
-
+		tx.Rollback()
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to create university rating pros and cons")
 	}
 

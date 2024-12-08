@@ -9,6 +9,7 @@ import (
 	"github.com/andibalo/meowhasiswa-be/pkg/db"
 	"github.com/andibalo/meowhasiswa-be/pkg/trace"
 	awsConfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"log"
 	"net/http"
@@ -32,7 +33,9 @@ func main() {
 		tracer = initTracer(cfg)
 	}
 
-	awsCfg, err := awsConfig.LoadDefaultConfig(context.TODO(), awsConfig.WithRegion(cfg.GetAWSCfg().Region))
+	awsCreds := credentials.NewStaticCredentialsProvider(cfg.GetAWSCfg().ACCESS_KEY_ID, cfg.GetAWSCfg().SECRET_ACCESS_KEY, "")
+
+	awsCfg, err := awsConfig.LoadDefaultConfig(context.TODO(), awsConfig.WithRegion(cfg.GetAWSCfg().Region), awsConfig.WithCredentialsProvider(awsCreds))
 	if err != nil {
 		log.Fatal(err)
 	}

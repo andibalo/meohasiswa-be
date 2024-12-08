@@ -55,9 +55,11 @@ type ThreadRepository interface {
 	GetThreadSubscriptionByUserAndThreadID(userID string, threadID string) (model.ThreadSubscription, error)
 	GetThreadCommentByID(id string) (model.ThreadComment, error)
 	DeleteThreadCommentByID(threadCommentID string, updateValues map[string]interface{}) error
+	DeleteThreadCommentByIDTx(threadCommentID string, updateValues map[string]interface{}, tx bun.Tx) error
 	UpdateThreadCommentByID(threadCommentID string, updateValues map[string]interface{}) error
 	GetThreadCommentReplyByID(id string) (model.ThreadCommentReply, error)
 	DeleteThreadCommentReplyByID(threadCommentReplyID string, updateValues map[string]interface{}) error
+	DeleteThreadCommentReplyByIDTx(threadCommentReplyID string, updateValues map[string]interface{}, tx bun.Tx) error
 	UpdateThreadCommentReplyByID(threadCommentReplyID string, updateValues map[string]interface{}) error
 	GetLastThreadActivityByUserID(threadId string, userId string) (*model.ThreadActivity, error)
 	GetLastThreadCommentActivityByUserID(threadId string, commentId string, userId string) (*model.ThreadCommentActivity, error)
@@ -75,6 +77,7 @@ type ThreadRepository interface {
 	IncrementDislikesCountTx(threadID string, tx bun.Tx) error
 	DecrementDislikesCountTx(threadID string, tx bun.Tx) error
 	IncrementCommentsCountTx(threadID string, tx bun.Tx) error
+	DecrementCommentsCountTx(threadID string, tx bun.Tx) error
 	IncrementCommentReplyCountTx(commentID string, tx bun.Tx) error
 	IncrementCommentLikesCountTx(threadCommentID string, tx bun.Tx) error
 	DecrementCommentLikesCountTx(threadCommentID string, tx bun.Tx) error

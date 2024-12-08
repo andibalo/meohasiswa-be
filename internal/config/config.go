@@ -90,8 +90,9 @@ type http struct {
 }
 
 type Flag struct {
-	EnableTracer    bool
-	EnableSendEmail bool
+	EnableTracer               bool
+	EnableSendEmail            bool
+	EnableSendPushNotification bool
 }
 
 type Auth struct {
@@ -192,8 +193,9 @@ func InitConfig() *AppConfig {
 			Token: viper.GetString("NOTIF_SVC_TOKEN"),
 		},
 		Flag: Flag{
-			EnableTracer:    viper.GetBool("ENABLE_TRACER"),
-			EnableSendEmail: viper.GetBool("ENABLE_SEND_EMAIL"),
+			EnableTracer:               viper.GetBool("ENABLE_TRACER"),
+			EnableSendEmail:            viper.GetBool("ENABLE_SEND_EMAIL"),
+			EnableSendPushNotification: viper.GetBool("ENABLE_SEND_PUSH_NOTIFICATION"),
 		},
 		Auth: Auth{
 			UserSecretCodeExpiryMins: viper.GetInt("USER_SECRET_CODE_EXPIRY_MINS"),
