@@ -55,8 +55,8 @@ CREATE TABLE university_rating (
     overall_rating NUMERIC(10, 2) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     created_by VARCHAR(100) NOT NULL,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_by VARCHAR(100) NOT NULL,
+    updated_at TIMESTAMPTZ,
+    updated_by VARCHAR(100),
     deleted_at TIMESTAMPTZ,
     deleted_by VARCHAR(100)
 );

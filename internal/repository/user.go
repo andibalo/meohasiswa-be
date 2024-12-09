@@ -153,7 +153,7 @@ func (r *userRepository) GetByID(id string) (*model.User, error) {
 
 func (r *userRepository) GetUserDevices(req request.GetUserDevicesReq) ([]model.UserDevice, error) {
 
-	var userDevices []model.UserDevice
+	var userDevices = []model.UserDevice{}
 
 	query := r.db.NewSelect().
 		Model(&userDevices)
@@ -253,6 +253,20 @@ func (r *userRepository) SetUserHasRateUniversityTx(id string, hru bool, tx bun.
 		Where("id = ?", id).
 		Exec(context.Background())
 
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *userRepository) UpdateUser(id string, updateValues map[string]interface{}) error {
+
+	_, err := r.db.NewUpdate().
+		Model(&updateValues).
+		Table("user").
+		Where("id = ?", id).
+		Exec(context.Background())
 	if err != nil {
 		return err
 	}

@@ -81,6 +81,24 @@ func JwtMiddleware(cfg config.Config) gin.HandlerFunc {
 	}
 }
 
+func IsAdminMiddleware(cfg config.Config) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+
+		claims := ParseToken(ctx)
+
+		if claims.Email == constants.EMAIL_ADMIN_MEOWHASISWA {
+			ctx.Next()
+			return
+		}
+
+		if claims.Role != constants.ADMIN_ROLE {
+			cfg.Logger().ErrorWithContext(ctx, "[IsAdminMiddleware] User unauthorized")
+			httpresp.HttpRespError(ctx, oops.Code(response.Unauthorized.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusUnauthorized).Errorf("User unauthorized"))
+			return
+		}
+	}
+}
+
 func ParseTokenFromHeader(ctx *gin.Context) (string, error) {
 	var (
 		headerToken = ctx.Request.Header.Get("Authorization")

@@ -23,6 +23,7 @@ type UserRepository interface {
 	SetUserVerifyCodeToUsedTx(id string, tx bun.Tx) error
 	SetUserHasRateUniversityTx(id string, hru bool, tx bun.Tx) error
 	GetUserVerifyCodeByEmail(email string, verifyCodeType string) (*model.UserVerifyCode, error)
+	UpdateUser(id string, updateValues map[string]interface{}) error
 	UpdateUserVerifyCodeByID(id string, updateValues map[string]interface{}) error
 	UpdateUserVerifyCodeByIDTx(id string, updateValues map[string]interface{}, tx bun.Tx) error
 	UpdateUserPasswordByUserID(id string, updateValues map[string]interface{}) error
@@ -50,6 +51,7 @@ type ThreadRepository interface {
 	DeleteByID(threadID string, updateValues map[string]interface{}) error
 	GetList(req request.GetThreadListReq) ([]model.Thread, pkg.Pagination, error)
 	GetByID(id string) (model.Thread, error)
+	GetThreadSubscribers(threadId string) ([]model.ThreadSubscription, error)
 	SaveThreadSubscription(threadSubscription *model.ThreadSubscription) error
 	UpdateThreadSubscriptionIsSubscribed(id string, isSubscribed bool) error
 	GetThreadSubscriptionByUserAndThreadID(userID string, threadID string) (model.ThreadSubscription, error)

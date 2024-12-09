@@ -11,6 +11,8 @@ type UserService interface {
 	GetUserProfile(ctx context.Context, req request.GetUserProfileReq) (*model.User, error)
 	CreateUserDevice(ctx context.Context, req request.CreateUserDeviceReq) error
 	GetUserDevices(ctx context.Context, req request.GetUserDevicesReq) ([]model.UserDevice, error)
+	BanUser(ctx context.Context, req request.BanUserReq) error
+	UnBanUser(ctx context.Context, req request.UnBanUserReq) error
 }
 
 type AuthService interface {

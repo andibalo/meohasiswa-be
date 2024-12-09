@@ -33,6 +33,8 @@ func (h *UserController) AddRoutes(r *gin.Engine) {
 	ur.GET("/profile", middleware.JwtMiddleware(h.cfg), h.GetUserProfile)
 	ur.GET("/device", middleware.JwtMiddleware(h.cfg), h.GetUserDevices)
 	ur.POST("/device/:user_id", middleware.JwtMiddleware(h.cfg), h.CreateUserDevice)
+	ur.PATCH("/ban/:user_id", middleware.JwtMiddleware(h.cfg), middleware.IsAdminMiddleware(h.cfg), h.BanUser)
+	ur.PATCH("/unban/:user_id", middleware.JwtMiddleware(h.cfg), middleware.IsAdminMiddleware(h.cfg), h.UnBanUser)
 	ur.GET("/test", h.TestLog)
 }
 
@@ -116,6 +118,60 @@ func (h *UserController) GetUserDevices(c *gin.Context) {
 	}
 
 	httpresp.HttpRespSuccess(c, userDevices, nil)
+	return
+}
+
+func (h *UserController) BanUser(c *gin.Context) {
+	//_, endFunc := trace.Start(c.Copy().Request.Context(), "UserController.BanUser", "controller")
+	//defer endFunc()
+
+	claims := middleware.ParseToken(c)
+	if len(claims.Token) == 0 {
+		httpresp.HttpRespError(c, oops.Code(response.Unauthorized.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusUnauthorized).Errorf(apperr.ErrUnauthorized))
+		return
+	}
+
+	var data request.BanUserReq
+
+	data.BanUserID = c.Param("user_id")
+	data.UserID = claims.ID
+	data.UserEmail = claims.Email
+
+	err := h.userSvc.BanUser(c.Request.Context(), data)
+	if err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[BanUser] Failed to ban user", zap.Error(err))
+		httpresp.HttpRespError(c, err)
+		return
+	}
+
+	httpresp.HttpRespSuccess(c, nil, nil)
+	return
+}
+
+func (h *UserController) UnBanUser(c *gin.Context) {
+	//_, endFunc := trace.Start(c.Copy().Request.Context(), "UserController.UnBanUser", "controller")
+	//defer endFunc()
+
+	claims := middleware.ParseToken(c)
+	if len(claims.Token) == 0 {
+		httpresp.HttpRespError(c, oops.Code(response.Unauthorized.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusUnauthorized).Errorf(apperr.ErrUnauthorized))
+		return
+	}
+
+	var data request.UnBanUserReq
+
+	data.UnBanUserID = c.Param("user_id")
+	data.UserID = claims.ID
+	data.UserEmail = claims.Email
+
+	err := h.userSvc.UnBanUser(c.Request.Context(), data)
+	if err != nil {
+		h.cfg.Logger().ErrorWithContext(c.Request.Context(), "[UnBanUser] Failed to unban user", zap.Error(err))
+		httpresp.HttpRespError(c, err)
+		return
+	}
+
+	httpresp.HttpRespSuccess(c, nil, nil)
 	return
 }
 

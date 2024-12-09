@@ -30,3 +30,17 @@ type GetUserDevicesReq struct {
 	UserID    string `json:"-"`
 	UserEmail string `json:"-"`
 }
+
+type BanUserReq struct {
+	BanUserID string `json:"-"`
+
+	UserID    string `json:"-"`
+	UserEmail string `json:"-"`
+}
+
+type UnBanUserReq struct {
+	UnBanUserID string `json:"-"`
+
+	UserID    string `json:"-"`
+	UserEmail string `json:"-"`
+}
