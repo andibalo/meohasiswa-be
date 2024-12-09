@@ -588,13 +588,21 @@ func (s *threadService) CommentThread(ctx context.Context, req request.CommentTh
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to get thread detail")
 	}
 
+	threadSubscribers, err := s.threadRepo.GetThreadSubscribers(req.ThreadID)
+
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		s.cfg.Logger().ErrorWithContext(ctx, "[CommentThread] Failed to get thread subscribers", zap.Error(err))
+
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to get thread subscribers")
+	}
+
 	userDevices, err := s.userRepo.GetUserDevices(request.GetUserDevicesReq{
 		UserID: thread.UserID,
 	})
 
 	if len(userDevices) == 0 {
 		s.cfg.Logger().ErrorWithContext(ctx, "[CommentThread] User devices not found", zap.Error(err))
-		return oops.Code(response.NotFound.AsString()).With(httpresp.StatusCodeCtxKey, http.NotFound).Errorf("User devices not found")
+		return oops.Code(response.NotFound.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusNotFound).Errorf("User devices not found")
 	}
 
 	if err != nil {
@@ -637,7 +645,7 @@ func (s *threadService) CommentThread(ctx context.Context, req request.CommentTh
 	}
 
 	if thread.UserID != req.UserID {
-		var notificationTokens []string
+		var notificationTokens = []string{}
 
 		for _, ud := range userDevices {
 			if ud.IsNotificationActive {
@@ -661,6 +669,43 @@ func (s *threadService) CommentThread(ctx context.Context, req request.CommentTh
 
 			if err != nil {
 				s.cfg.Logger().ErrorWithContext(ctx, "[CommentThread] Failed to send push notification", zap.Error(err))
+			}
+		}
+	}
+
+	if len(threadSubscribers) > 0 {
+		var subscriberNotificationTokens = []string{}
+
+		for _, ts := range threadSubscribers {
+			if ts.UserID == req.UserID {
+				continue
+			}
+
+			if ts.User.Devices != nil && len(ts.User.Devices) > 0 {
+				for _, tsud := range ts.User.Devices {
+					if tsud.IsNotificationActive {
+						subscriberNotificationTokens = append(subscriberNotificationTokens, tsud.NotificationToken)
+					}
+				}
+			}
+		}
+
+		if len(subscriberNotificationTokens) > 0 {
+
+			notifData := map[string]string{
+				constants.APP_ROUTE_KEY:  "/thread/" + thread.ID,
+				constants.EVENT_TYPE_KEY: constants.COMMENT_ON_SUBSCRIBED_THREAD_EVENT,
+			}
+
+			_, err = s.notifCl.SendPushNotification(ctx, notifsvc.SendPushNotificationReq{
+				NotificationTokens: subscriberNotificationTokens,
+				Title:              "A New Comment on Your Subscribed Thread!",
+				Content:            fmt.Sprintf("%s: %s", req.Username, pkg.TruncateWithEllipsis(req.Content, 50)),
+				Data:               notifData,
+			})
+
+			if err != nil {
+				s.cfg.Logger().ErrorWithContext(ctx, "[CommentThread] Failed to send push notification to thread subscribers", zap.Error(err))
 			}
 		}
 	}

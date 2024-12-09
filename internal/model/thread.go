@@ -111,6 +111,7 @@ type ThreadSubscription struct {
 
 	ID           string       `bun:",pk" json:"id"`
 	UserID       string       `bun:"user_id" json:"user_id"`
+	User         User         `bun:"rel:belongs-to,join:user_id=id" json:"user"`
 	ThreadID     string       `bun:"thread_id" json:"thread_id"`
 	IsSubscribed bool         `bun:"is_subscribed" json:"is_subscribed"`
 	CreatedBy    string       `bun:"created_by" json:"created_by"`

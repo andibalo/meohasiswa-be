@@ -233,6 +233,30 @@ func (r *threadRepository) GetByID(id string) (model.Thread, error) {
 	return thread, nil
 }
 
+func (r *threadRepository) GetThreadSubscribers(threadId string) ([]model.ThreadSubscription, error) {
+
+	var (
+		ts = []model.ThreadSubscription{}
+	)
+
+	err := r.db.NewSelect().
+		Column("ths.*").
+		Model(&ts).
+		Relation("User", func(q *bun.SelectQuery) *bun.SelectQuery {
+			return q.Column("id", "username")
+		}).
+		Relation("User.Devices").
+		Where("ths.thread_id = ?", threadId).
+		Where("ths.is_subscribed = TRUE").
+		Scan(context.Background())
+
+	if err != nil {
+		return ts, err
+	}
+
+	return ts, nil
+}
+
 func (r *threadRepository) GetThreadSubscriptionByUserAndThreadID(userID string, threadID string) (model.ThreadSubscription, error) {
 
 	threadSubscription := model.ThreadSubscription{}
