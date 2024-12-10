@@ -291,6 +291,21 @@ func (s *threadService) LikeThread(ctx context.Context, req request.LikeThreadRe
 	//ctx, endFunc := trace.Start(ctx, "ThreadService.LikeThread", "service")
 	//defer endFunc()
 
+	var (
+		shouldDoubleIncrementUserReputationPoints bool
+	)
+
+	existingThread, err := s.threadRepo.GetByIDSimple(req.ThreadID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			s.cfg.Logger().ErrorWithContext(ctx, "[LikeThread] Thread not found", zap.Error(err))
+			return oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("Thread not found")
+		}
+
+		s.cfg.Logger().ErrorWithContext(ctx, "[LikeThread] Failed to get thread by id", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+	}
+
 	lastThreadActivity, err := s.getUserLastThreadAction(ctx, req.ThreadID, req.UserID)
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[LikeThread] Failed to get user last thread action", zap.Error(err))
@@ -312,6 +327,18 @@ func (s *threadService) LikeThread(ctx context.Context, req request.LikeThreadRe
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to unlike thread")
 		}
 
+		updateValues := map[string]interface{}{
+			"reputation_points": constants.DEFAULT_DECREMENT_REPUTATION,
+			"updated_by":        req.UserEmail,
+		}
+
+		err = s.userRepo.DecrementUserReputationPointsTx(existingThread.UserID, updateValues, tx)
+		if err != nil {
+			s.cfg.Logger().ErrorWithContext(ctx, "[LikeThread] Failed to decrement thread op reputation points", zap.Error(err))
+			tx.Rollback()
+			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to decrement thread op reputation points")
+		}
+
 		err = tx.Commit()
 		if err != nil {
 			s.cfg.Logger().ErrorWithContext(ctx, "[LikeThread] Failed to commit transaction", zap.Error(err))
@@ -329,6 +356,8 @@ func (s *threadService) LikeThread(ctx context.Context, req request.LikeThreadRe
 			tx.Rollback()
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to decrement thread dislikes count")
 		}
+
+		shouldDoubleIncrementUserReputationPoints = true
 	}
 
 	err = s.threadRepo.IncrementLikesCountTx(req.ThreadID, tx)
@@ -351,6 +380,22 @@ func (s *threadService) LikeThread(ctx context.Context, req request.LikeThreadRe
 			s.cfg.Logger().ErrorWithContext(ctx, "[LikeThread] Failed to update thread activity", zap.Error(err))
 			tx.Rollback()
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update thread activity")
+		}
+
+		updateUserValues := map[string]interface{}{
+			"reputation_points": constants.DEFAULT_INCREMENT_REPUTATION,
+			"updated_by":        req.UserEmail,
+		}
+
+		if shouldDoubleIncrementUserReputationPoints {
+			updateUserValues["reputation_points"] = constants.DEFAULT_INCREMENT_REPUTATION * 2
+		}
+
+		err = s.userRepo.IncrementUserReputationPointsTx(existingThread.UserID, updateUserValues, tx)
+		if err != nil {
+			s.cfg.Logger().ErrorWithContext(ctx, "[LikeThread] Failed to increment thread op reputation points", zap.Error(err))
+			tx.Rollback()
+			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to increment thread op reputation points")
 		}
 
 		// TODO: Save to thread activity history
@@ -379,6 +424,22 @@ func (s *threadService) LikeThread(ctx context.Context, req request.LikeThreadRe
 		s.cfg.Logger().ErrorWithContext(ctx, "[LikeThread] Failed to save thread activity", zap.Error(err))
 		tx.Rollback()
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to save thread activity")
+	}
+
+	updateValues := map[string]interface{}{
+		"reputation_points": constants.DEFAULT_INCREMENT_REPUTATION,
+		"updated_by":        req.UserEmail,
+	}
+
+	if shouldDoubleIncrementUserReputationPoints {
+		updateValues["reputation_points"] = constants.DEFAULT_INCREMENT_REPUTATION * 2
+	}
+
+	err = s.userRepo.IncrementUserReputationPointsTx(existingThread.UserID, updateValues, tx)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[LikeThread] Failed to increment thread op reputation points", zap.Error(err))
+		tx.Rollback()
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to increment thread op reputation points")
 	}
 
 	err = tx.Commit()
@@ -442,6 +503,21 @@ func (s *threadService) DislikeThread(ctx context.Context, req request.DislikeTh
 	//ctx, endFunc := trace.Start(ctx, "ThreadService.DislikeThread", "service")
 	//defer endFunc()
 
+	var (
+		shouldDoubleDecrementUserReputationPoints bool
+	)
+
+	existingThread, err := s.threadRepo.GetByIDSimple(req.ThreadID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			s.cfg.Logger().ErrorWithContext(ctx, "[DislikeThread] Thread not found", zap.Error(err))
+			return oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("Thread not found")
+		}
+
+		s.cfg.Logger().ErrorWithContext(ctx, "[DislikeThread] Failed to get thread by id", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+	}
+
 	lastThreadActivity, err := s.getUserLastThreadAction(ctx, req.ThreadID, req.UserID)
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[DislikeThread] Failed to get user last thread action", zap.Error(err))
@@ -463,6 +539,18 @@ func (s *threadService) DislikeThread(ctx context.Context, req request.DislikeTh
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to undislike thread")
 		}
 
+		updateValues := map[string]interface{}{
+			"reputation_points": constants.DEFAULT_INCREMENT_REPUTATION,
+			"updated_by":        req.UserEmail,
+		}
+
+		err = s.userRepo.IncrementUserReputationPointsTx(existingThread.UserID, updateValues, tx)
+		if err != nil {
+			s.cfg.Logger().ErrorWithContext(ctx, "[DislikeThread] Failed to increment thread op reputation points", zap.Error(err))
+			tx.Rollback()
+			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to increment thread op reputation points")
+		}
+
 		err = tx.Commit()
 		if err != nil {
 			s.cfg.Logger().ErrorWithContext(ctx, "[DislikeThread] Failed to commit transaction", zap.Error(err))
@@ -480,6 +568,8 @@ func (s *threadService) DislikeThread(ctx context.Context, req request.DislikeTh
 			tx.Rollback()
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to decrement thread likes count")
 		}
+
+		shouldDoubleDecrementUserReputationPoints = true
 	}
 
 	err = s.threadRepo.IncrementDislikesCountTx(req.ThreadID, tx)
@@ -502,6 +592,22 @@ func (s *threadService) DislikeThread(ctx context.Context, req request.DislikeTh
 			s.cfg.Logger().ErrorWithContext(ctx, "[DislikeThread] Failed to update thread activity", zap.Error(err))
 			tx.Rollback()
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update thread activity")
+		}
+
+		updateUserValues := map[string]interface{}{
+			"reputation_points": constants.DEFAULT_DECREMENT_REPUTATION,
+			"updated_by":        req.UserEmail,
+		}
+
+		if shouldDoubleDecrementUserReputationPoints {
+			updateUserValues["reputation_points"] = constants.DEFAULT_DECREMENT_REPUTATION * 2
+		}
+
+		err = s.userRepo.DecrementUserReputationPointsTx(existingThread.UserID, updateUserValues, tx)
+		if err != nil {
+			s.cfg.Logger().ErrorWithContext(ctx, "[DislikeThread] Failed to decrement thread op reputation points", zap.Error(err))
+			tx.Rollback()
+			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to decrement thread op reputation points")
 		}
 
 		// TODO: Save to thread activity history
@@ -530,6 +636,22 @@ func (s *threadService) DislikeThread(ctx context.Context, req request.DislikeTh
 		s.cfg.Logger().ErrorWithContext(ctx, "[DislikeThread] Failed to save thread activity", zap.Error(err))
 		tx.Rollback()
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to save thread activity")
+	}
+
+	updateValues := map[string]interface{}{
+		"reputation_points": constants.DEFAULT_DECREMENT_REPUTATION,
+		"updated_by":        req.UserEmail,
+	}
+
+	if shouldDoubleDecrementUserReputationPoints {
+		updateValues["reputation_points"] = constants.DEFAULT_DECREMENT_REPUTATION * 2
+	}
+
+	err = s.userRepo.DecrementUserReputationPointsTx(existingThread.UserID, updateValues, tx)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[DislikeThread] Failed to decrement thread op reputation points", zap.Error(err))
+		tx.Rollback()
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to decrement thread op reputation points")
 	}
 
 	err = tx.Commit()

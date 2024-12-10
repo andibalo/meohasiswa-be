@@ -17,6 +17,11 @@ const (
 	UNI_RATING_CON = "CON"
 )
 
+const (
+	DEFAULT_INCREMENT_REPUTATION = 5
+	DEFAULT_DECREMENT_REPUTATION = 5
+)
+
 // notification
 const (
 	EVENT_TYPE_KEY = "event_type"

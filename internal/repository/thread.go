@@ -233,6 +233,23 @@ func (r *threadRepository) GetByID(id string) (model.Thread, error) {
 	return thread, nil
 }
 
+func (r *threadRepository) GetByIDSimple(id string) (model.Thread, error) {
+	var (
+		thread model.Thread
+	)
+
+	err := r.db.NewSelect().
+		Model(&thread).
+		Where("id = ?", id).
+		Scan(context.Background())
+
+	if err != nil {
+		return thread, err
+	}
+
+	return thread, nil
+}
+
 func (r *threadRepository) GetThreadSubscribers(threadId string) ([]model.ThreadSubscription, error) {
 
 	var (

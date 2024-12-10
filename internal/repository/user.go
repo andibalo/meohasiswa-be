@@ -273,3 +273,53 @@ func (r *userRepository) UpdateUser(id string, updateValues map[string]interface
 
 	return nil
 }
+
+func (r *userRepository) UpdateUserTx(id string, updateValues map[string]interface{}, tx bun.Tx) error {
+
+	_, err := tx.NewUpdate().
+		Model(&updateValues).
+		Table("user").
+		Where("id = ?", id).
+		Exec(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *userRepository) IncrementUserReputationPointsTx(id string, updateValues map[string]interface{}, tx bun.Tx) error {
+
+	_, err := tx.NewRaw(`update
+									"user"
+								set 
+									reputation_points = reputation_points + ?, 
+									updated_at = now(), 
+									updated_by = ?
+								where
+								id = ?`, updateValues["reputation_points"], updateValues["updated_by"], id).
+		Exec(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *userRepository) DecrementUserReputationPointsTx(id string, updateValues map[string]interface{}, tx bun.Tx) error {
+
+	_, err := tx.NewRaw(`update
+									"user"
+								set 
+									reputation_points = reputation_points - ?, 
+									updated_at = now(), 
+									updated_by = ?
+								where
+								id = ?`, updateValues["reputation_points"], updateValues["updated_by"], id).
+		Exec(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
