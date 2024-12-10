@@ -61,7 +61,7 @@ func (b *BrevoService) SendMail(ctx context.Context, mailReq Mail) error {
 	obj, _, err := b.brevoRepo.TransactionalEmailsApi.SendTransacEmail(ctx, mailBody)
 	if err != nil {
 		b.cfg.Logger().ErrorWithContext(ctx, "[BrevoSvc.SendMail] Error in TransactionalEmailsApi->SendTransacEmail", zap.String("error", err.Error()))
-		return nil
+		return err
 	}
 
 	b.cfg.Logger().InfoWithContext(ctx, "[BrevoSvc.SendMail] Success send mail", zap.String("mail_type", mailReq.Name), zap.Any("data", obj))
