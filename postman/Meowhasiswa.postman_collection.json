@@ -117,7 +117,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJBRE1JTiIsInVzZXJuYW1lIjoiaW5jb25zaXN0ZW5jZSJ9.YecRGwH2I-Dc8izWIgQEsgDQwhXX28TtSgEMP_lBx3I",
 									"type": "string"
 								}
 							]
@@ -148,7 +148,7 @@
 							"variable": [
 								{
 									"key": "thread_id",
-									"value": "625468c0-0034-4554-a51f-96f8f68aa44e"
+									"value": "3940cf54-4ae3-47ee-b8e6-e344206e6d9a"
 								}
 							]
 						}
@@ -163,7 +163,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJBRE1JTiIsInVzZXJuYW1lIjoiaW5jb25zaXN0ZW5jZSJ9.YecRGwH2I-Dc8izWIgQEsgDQwhXX28TtSgEMP_lBx3I",
 									"type": "string"
 								}
 							]
@@ -185,7 +185,7 @@
 							"variable": [
 								{
 									"key": "thread_id",
-									"value": "625468c0-0034-4554-a51f-96f8f68aa44e"
+									"value": "3940cf54-4ae3-47ee-b8e6-e344206e6d9a"
 								}
 							]
 						}
@@ -337,7 +337,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJBRE1JTiIsInVzZXJuYW1lIjoiaW5jb25zaXN0ZW5jZSJ9.YecRGwH2I-Dc8izWIgQEsgDQwhXX28TtSgEMP_lBx3I",
 									"type": "string"
 								}
 							]
@@ -368,7 +368,7 @@
 							"variable": [
 								{
 									"key": "comment_id",
-									"value": "3319aa33-7363-489e-8f62-ec8c36f52aac"
+									"value": "3940cf54-4ae3-47ee-b8e6-e344206e6d9a"
 								}
 							]
 						}
@@ -430,7 +430,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFiZHVsbGFoLmFzZXBAc3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6IjIxNGVlYTc4LTNkZWItNDlkYy1hYjA4LTZlNDk5MjQ4ZjRhZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJmZXNmZXMifQ.jTubuek1mtXlo9bF43f5AJcq8eBoJjeX4M-yJ6H9w6g",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJBRE1JTiIsInVzZXJuYW1lIjoiaW5jb25zaXN0ZW5jZSJ9.YecRGwH2I-Dc8izWIgQEsgDQwhXX28TtSgEMP_lBx3I",
 									"type": "string"
 								}
 							]
@@ -439,7 +439,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"content\": \"this is a very long comment from asep 2 dwipoamnpdiowandpwanpdioawpidwaipdnwaipdnwpaidnpiwadpinwapnidnwapidwaipdnpwiadnpiwapndiwapindwapindnwaipinpwa\"\r\n}",
+							"raw": "{\r\n    \"content\": \"this is a comment\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -461,7 +461,7 @@
 							"variable": [
 								{
 									"key": "thread_id",
-									"value": "625468c0-0034-4554-a51f-96f8f68aa44e"
+									"value": "3940cf54-4ae3-47ee-b8e6-e344206e6d9a"
 								}
 							]
 						}
@@ -634,7 +634,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJVU0VSIiwidXNlcm5hbWUiOiJpbmNvbnNpc3RlbmNlIn0.3nfOIkVqTJTHbv_6VG1zOG6n3SAk9QIq5U49GOx7mLw",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJBRE1JTiIsInVzZXJuYW1lIjoiaW5jb25zaXN0ZW5jZSJ9.YecRGwH2I-Dc8izWIgQEsgDQwhXX28TtSgEMP_lBx3I",
 									"type": "string"
 								}
 							]
@@ -655,7 +655,7 @@
 							"variable": [
 								{
 									"key": "thread_id",
-									"value": "625468c0-0034-4554-a51f-96f8f68aa44e"
+									"value": "d663a837-fb6b-40d8-84d6-a1041b3e381b"
 								}
 							]
 						}
@@ -1506,7 +1506,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"email\": \"andi.usman@student.umn.ac.id\",\r\n    \"Code\": \"167837\"\r\n}",
+							"raw": "{\r\n    \"email\": \"andi.usman@student.umn.ac.id\",\r\n    \"code\": \"167837\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1676,6 +1676,80 @@
 								{
 									"key": "user_id",
 									"value": "f3cb8535-9977-4a1c-874a-2c0e1bed503d"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Ban User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJBRE1JTiIsInVzZXJuYW1lIjoiaW5jb25zaXN0ZW5jZSJ9.YecRGwH2I-Dc8izWIgQEsgDQwhXX28TtSgEMP_lBx3I",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/user/ban/:user_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"user",
+								"ban",
+								":user_id"
+							],
+							"variable": [
+								{
+									"key": "user_id",
+									"value": "56666d24-8f0b-4b06-be3d-5183f9143b32"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UnBan User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFuZGkudXNtYW5Ac3R1ZGVudC51bW4uYWMuaWQiLCJpZCI6ImYzY2I4NTM1LTk5NzctNGExYy04NzRhLTJjMGUxYmVkNTAzZCIsInJvbGUiOiJBRE1JTiIsInVzZXJuYW1lIjoiaW5jb25zaXN0ZW5jZSJ9.YecRGwH2I-Dc8izWIgQEsgDQwhXX28TtSgEMP_lBx3I",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/user/unban/:user_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"user",
+								"unban",
+								":user_id"
+							],
+							"variable": [
+								{
+									"key": "user_id",
+									"value": "56666d24-8f0b-4b06-be3d-5183f9143b32"
 								}
 							]
 						}
