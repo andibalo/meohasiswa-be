@@ -106,7 +106,6 @@ func (s *universityService) CreateUniversityRating(ctx context.Context, req requ
 		PriceToValueRating:        req.PriceToValueRating,
 		OverallRating:             overallRating,
 		CreatedBy:                 req.UserEmail,
-		UpdatedBy:                 req.UserEmail,
 	}
 
 	err = s.universityRepo.SaveUniversityRatingTx(uniRating, tx)

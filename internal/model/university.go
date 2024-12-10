@@ -40,8 +40,8 @@ type UniversityRating struct {
 	UniversityRatingPoints    []UniversityRatingPoints `bun:"rel:has-many,join:id=university_rating_id" json:"university_rating_points"`
 	CreatedBy                 string                   `bun:"created_by" json:"created_by"`
 	CreatedAt                 time.Time                `bun:",nullzero,default:now()" json:"created_at"`
-	UpdatedBy                 string                   `bun:"updated_by" json:"updated_by"`
-	UpdatedAt                 time.Time                `bun:",nullzero,default:now()" json:"updated_at"`
+	UpdatedBy                 *string                  `bun:"updated_by" json:"updated_by"`
+	UpdatedAt                 bun.NullTime             `bun:",nullzero,default:now()" json:"updated_at"`
 	DeletedBy                 *string                  `bun:"deleted_by" json:"-"`
 	DeletedAt                 time.Time                `bun:",nullzero,soft_delete" json:"-"`
 }
