@@ -899,6 +899,21 @@ func (s *threadService) LikeComment(ctx context.Context, req request.LikeComment
 		return nil
 	}
 
+	var (
+		shouldDoubleIncrementUserReputationPoints bool
+	)
+
+	existingComment, err := s.threadRepo.GetThreadCommentByID(req.CommentID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			s.cfg.Logger().ErrorWithContext(ctx, "[LikeComment] Thread comment not found", zap.Error(err))
+			return oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("Thread comment not found")
+		}
+
+		s.cfg.Logger().ErrorWithContext(ctx, "[LikeComment] Failed to get thread comment by id", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+	}
+
 	lastThreadCommentActivity, err := s.getUserLastThreadCommentAction(ctx, req.ThreadID, req.CommentID, req.UserID)
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[LikeComment] Failed to get user last thread comment action", zap.Error(err))
@@ -920,6 +935,18 @@ func (s *threadService) LikeComment(ctx context.Context, req request.LikeComment
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to unlike comment")
 		}
 
+		updateValues := map[string]interface{}{
+			"reputation_points": constants.DEFAULT_DECREMENT_REPUTATION,
+			"updated_by":        req.UserEmail,
+		}
+
+		err = s.userRepo.DecrementUserReputationPointsTx(existingComment.UserID, updateValues, tx)
+		if err != nil {
+			s.cfg.Logger().ErrorWithContext(ctx, "[LikeComment] Failed to decrement comment op reputation points", zap.Error(err))
+			tx.Rollback()
+			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to decrement comment op reputation points")
+		}
+
 		err = tx.Commit()
 		if err != nil {
 			s.cfg.Logger().ErrorWithContext(ctx, "[LikeComment] Failed to commit transaction", zap.Error(err))
@@ -937,6 +964,8 @@ func (s *threadService) LikeComment(ctx context.Context, req request.LikeComment
 			tx.Rollback()
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to decrement comment dislikes count")
 		}
+
+		shouldDoubleIncrementUserReputationPoints = true
 	}
 
 	err = s.threadRepo.IncrementCommentLikesCountTx(req.CommentID, tx)
@@ -959,6 +988,22 @@ func (s *threadService) LikeComment(ctx context.Context, req request.LikeComment
 			s.cfg.Logger().ErrorWithContext(ctx, "[LikeComment] Failed to update thread comment activity", zap.Error(err))
 			tx.Rollback()
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update thread comment activity")
+		}
+
+		updateUserValues := map[string]interface{}{
+			"reputation_points": constants.DEFAULT_INCREMENT_REPUTATION,
+			"updated_by":        req.UserEmail,
+		}
+
+		if shouldDoubleIncrementUserReputationPoints {
+			updateUserValues["reputation_points"] = constants.DEFAULT_INCREMENT_REPUTATION * 2
+		}
+
+		err = s.userRepo.IncrementUserReputationPointsTx(existingComment.UserID, updateUserValues, tx)
+		if err != nil {
+			s.cfg.Logger().ErrorWithContext(ctx, "[LikeComment] Failed to increment comment op reputation points", zap.Error(err))
+			tx.Rollback()
+			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to increment comment op reputation points")
 		}
 
 		// TODO: Save to thread activity history
@@ -990,6 +1035,22 @@ func (s *threadService) LikeComment(ctx context.Context, req request.LikeComment
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to save thread comment activity")
 	}
 
+	updateValues := map[string]interface{}{
+		"reputation_points": constants.DEFAULT_INCREMENT_REPUTATION,
+		"updated_by":        req.UserEmail,
+	}
+
+	if shouldDoubleIncrementUserReputationPoints {
+		updateValues["reputation_points"] = constants.DEFAULT_INCREMENT_REPUTATION * 2
+	}
+
+	err = s.userRepo.IncrementUserReputationPointsTx(existingComment.UserID, updateValues, tx)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[LikeComment] Failed to increment comment op reputation points", zap.Error(err))
+		tx.Rollback()
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to increment comment op reputation points")
+	}
+
 	err = tx.Commit()
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[LikeComment] Failed to commit transaction", zap.Error(err))
@@ -1002,6 +1063,10 @@ func (s *threadService) LikeComment(ctx context.Context, req request.LikeComment
 func (s *threadService) likeCommentReply(ctx context.Context, req request.LikeCommentReq) error {
 	//ctx, endFunc := trace.Start(ctx, "ThreadService.likeCommentReply", "service")
 	//defer endFunc()
+
+	var (
+		shouldDoubleIncrementUserReputationPoints bool
+	)
 
 	lastThreadCommentReplyActivity, err := s.getUserLastThreadCommentReplyAction(ctx, req.ThreadID, req.CommentID, req.UserID)
 	if err != nil {
@@ -1036,6 +1101,18 @@ func (s *threadService) likeCommentReply(ctx context.Context, req request.LikeCo
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to unlike comment reply")
 		}
 
+		updateValues := map[string]interface{}{
+			"reputation_points": constants.DEFAULT_DECREMENT_REPUTATION,
+			"updated_by":        req.UserEmail,
+		}
+
+		err = s.userRepo.DecrementUserReputationPointsTx(threadCommentReply.UserID, updateValues, tx)
+		if err != nil {
+			s.cfg.Logger().ErrorWithContext(ctx, "[likeCommentReply] Failed to decrement comment reply op reputation points", zap.Error(err))
+			tx.Rollback()
+			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to decrement comment reply op reputation points")
+		}
+
 		err = tx.Commit()
 		if err != nil {
 			s.cfg.Logger().ErrorWithContext(ctx, "[likeCommentReply] Failed to commit transaction", zap.Error(err))
@@ -1053,6 +1130,8 @@ func (s *threadService) likeCommentReply(ctx context.Context, req request.LikeCo
 			tx.Rollback()
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to decrement comment reply dislikes count")
 		}
+
+		shouldDoubleIncrementUserReputationPoints = true
 	}
 
 	err = s.threadRepo.IncrementCommentReplyLikesCountTx(req.CommentID, tx)
@@ -1075,6 +1154,22 @@ func (s *threadService) likeCommentReply(ctx context.Context, req request.LikeCo
 			s.cfg.Logger().ErrorWithContext(ctx, "[likeCommentReply] Failed to update thread comment reply activity", zap.Error(err))
 			tx.Rollback()
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update thread comment reply activity")
+		}
+
+		updateUserValues := map[string]interface{}{
+			"reputation_points": constants.DEFAULT_INCREMENT_REPUTATION,
+			"updated_by":        req.UserEmail,
+		}
+
+		if shouldDoubleIncrementUserReputationPoints {
+			updateUserValues["reputation_points"] = constants.DEFAULT_INCREMENT_REPUTATION * 2
+		}
+
+		err = s.userRepo.IncrementUserReputationPointsTx(threadCommentReply.UserID, updateUserValues, tx)
+		if err != nil {
+			s.cfg.Logger().ErrorWithContext(ctx, "[likeCommentReply] Failed to increment comment reply op reputation points", zap.Error(err))
+			tx.Rollback()
+			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to increment comment reply op reputation points")
 		}
 
 		// TODO: Save to thread activity history
@@ -1105,6 +1200,22 @@ func (s *threadService) likeCommentReply(ctx context.Context, req request.LikeCo
 		s.cfg.Logger().ErrorWithContext(ctx, "[likeCommentReply] Failed to save thread comment reply activity", zap.Error(err))
 		tx.Rollback()
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to save thread comment reply activity")
+	}
+
+	updateUserValues := map[string]interface{}{
+		"reputation_points": constants.DEFAULT_INCREMENT_REPUTATION,
+		"updated_by":        req.UserEmail,
+	}
+
+	if shouldDoubleIncrementUserReputationPoints {
+		updateUserValues["reputation_points"] = constants.DEFAULT_INCREMENT_REPUTATION * 2
+	}
+
+	err = s.userRepo.IncrementUserReputationPointsTx(threadCommentReply.UserID, updateUserValues, tx)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[likeCommentReply] Failed to increment comment reply op reputation points", zap.Error(err))
+		tx.Rollback()
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to increment comment reply op reputation points")
 	}
 
 	err = tx.Commit()
@@ -1227,6 +1338,21 @@ func (s *threadService) DislikeComment(ctx context.Context, req request.DislikeC
 		return nil
 	}
 
+	var (
+		shouldDoubleDecrementUserReputationPoints bool
+	)
+
+	existingComment, err := s.threadRepo.GetThreadCommentByID(req.CommentID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			s.cfg.Logger().ErrorWithContext(ctx, "[DislikeComment] Thread comment not found", zap.Error(err))
+			return oops.Code(response.BadRequest.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusBadRequest).Errorf("Thread comment not found")
+		}
+
+		s.cfg.Logger().ErrorWithContext(ctx, "[DislikeComment] Failed to get thread comment by id", zap.Error(err))
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf(apperr.ErrInternalServerError)
+	}
+
 	lastThreadCommentActivity, err := s.getUserLastThreadCommentAction(ctx, req.ThreadID, req.CommentID, req.UserID)
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[DislikeComment] Failed to get user last thread comment action", zap.Error(err))
@@ -1248,6 +1374,18 @@ func (s *threadService) DislikeComment(ctx context.Context, req request.DislikeC
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to undislike comment")
 		}
 
+		updateValues := map[string]interface{}{
+			"reputation_points": constants.DEFAULT_INCREMENT_REPUTATION,
+			"updated_by":        req.UserEmail,
+		}
+
+		err = s.userRepo.IncrementUserReputationPointsTx(existingComment.UserID, updateValues, tx)
+		if err != nil {
+			s.cfg.Logger().ErrorWithContext(ctx, "[DislikeComment] Failed to increment comment op reputation points", zap.Error(err))
+			tx.Rollback()
+			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to increment comment op reputation points")
+		}
+
 		err = tx.Commit()
 		if err != nil {
 			s.cfg.Logger().ErrorWithContext(ctx, "[DislikeComment] Failed to commit transaction", zap.Error(err))
@@ -1265,6 +1403,8 @@ func (s *threadService) DislikeComment(ctx context.Context, req request.DislikeC
 			tx.Rollback()
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to decrement thread comment likes count")
 		}
+
+		shouldDoubleDecrementUserReputationPoints = true
 	}
 
 	err = s.threadRepo.IncrementCommentDislikesCountTx(req.CommentID, tx)
@@ -1287,6 +1427,22 @@ func (s *threadService) DislikeComment(ctx context.Context, req request.DislikeC
 			s.cfg.Logger().ErrorWithContext(ctx, "[DislikeComment] Failed to update thread comment activity", zap.Error(err))
 			tx.Rollback()
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update thread comment activity")
+		}
+
+		updateUserValues := map[string]interface{}{
+			"reputation_points": constants.DEFAULT_DECREMENT_REPUTATION,
+			"updated_by":        req.UserEmail,
+		}
+
+		if shouldDoubleDecrementUserReputationPoints {
+			updateUserValues["reputation_points"] = constants.DEFAULT_DECREMENT_REPUTATION * 2
+		}
+
+		err = s.userRepo.DecrementUserReputationPointsTx(existingComment.UserID, updateUserValues, tx)
+		if err != nil {
+			s.cfg.Logger().ErrorWithContext(ctx, "[DislikeComment] Failed to decrement comment op reputation points", zap.Error(err))
+			tx.Rollback()
+			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to decrement comment op reputation points")
 		}
 
 		// TODO: Save to thread activity history
@@ -1316,6 +1472,22 @@ func (s *threadService) DislikeComment(ctx context.Context, req request.DislikeC
 		s.cfg.Logger().ErrorWithContext(ctx, "[DislikeComment] Failed to save thread comment activity", zap.Error(err))
 		tx.Rollback()
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to save thread comment activity")
+	}
+
+	updateUserValues := map[string]interface{}{
+		"reputation_points": constants.DEFAULT_DECREMENT_REPUTATION,
+		"updated_by":        req.UserEmail,
+	}
+
+	if shouldDoubleDecrementUserReputationPoints {
+		updateUserValues["reputation_points"] = constants.DEFAULT_DECREMENT_REPUTATION * 2
+	}
+
+	err = s.userRepo.DecrementUserReputationPointsTx(existingComment.UserID, updateUserValues, tx)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[DislikeComment] Failed to decrement comment op reputation points", zap.Error(err))
+		tx.Rollback()
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to decrement comment op reputation points")
 	}
 
 	err = tx.Commit()
@@ -1360,6 +1532,10 @@ func (s *threadService) dislikeCommentReply(ctx context.Context, req request.Dis
 	//ctx, endFunc := trace.Start(ctx, "ThreadService.dislikeCommentReply", "service")
 	//defer endFunc()
 
+	var (
+		shouldDoubleDecrementUserReputationPoints bool
+	)
+
 	lastThreadCommentReplyActivity, err := s.getUserLastThreadCommentReplyAction(ctx, req.ThreadID, req.CommentID, req.UserID)
 	if err != nil {
 		s.cfg.Logger().ErrorWithContext(ctx, "[dislikeCommentReply] Failed to get user last thread comment reply action", zap.Error(err))
@@ -1393,6 +1569,18 @@ func (s *threadService) dislikeCommentReply(ctx context.Context, req request.Dis
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to undislike comment reply")
 		}
 
+		updateValues := map[string]interface{}{
+			"reputation_points": constants.DEFAULT_INCREMENT_REPUTATION,
+			"updated_by":        req.UserEmail,
+		}
+
+		err = s.userRepo.IncrementUserReputationPointsTx(threadCommentReply.UserID, updateValues, tx)
+		if err != nil {
+			s.cfg.Logger().ErrorWithContext(ctx, "[dislikeCommentReply] Failed to increment comment reply op reputation points", zap.Error(err))
+			tx.Rollback()
+			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to increment comment reply op reputation points")
+		}
+
 		err = tx.Commit()
 		if err != nil {
 			s.cfg.Logger().ErrorWithContext(ctx, "[dislikeCommentReply] Failed to commit transaction", zap.Error(err))
@@ -1410,6 +1598,8 @@ func (s *threadService) dislikeCommentReply(ctx context.Context, req request.Dis
 			tx.Rollback()
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to decrement thread comment reply likes count")
 		}
+
+		shouldDoubleDecrementUserReputationPoints = true
 	}
 
 	err = s.threadRepo.IncrementCommentReplyDislikesCountTx(req.CommentID, tx)
@@ -1432,6 +1622,22 @@ func (s *threadService) dislikeCommentReply(ctx context.Context, req request.Dis
 			s.cfg.Logger().ErrorWithContext(ctx, "[dislikeCommentReply] Failed to update thread comment reply activity", zap.Error(err))
 			tx.Rollback()
 			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to update thread comment reply activity")
+		}
+
+		updateUserValues := map[string]interface{}{
+			"reputation_points": constants.DEFAULT_DECREMENT_REPUTATION,
+			"updated_by":        req.UserEmail,
+		}
+
+		if shouldDoubleDecrementUserReputationPoints {
+			updateUserValues["reputation_points"] = constants.DEFAULT_DECREMENT_REPUTATION * 2
+		}
+
+		err = s.userRepo.DecrementUserReputationPointsTx(threadCommentReply.UserID, updateUserValues, tx)
+		if err != nil {
+			s.cfg.Logger().ErrorWithContext(ctx, "[dislikeCommentReply] Failed to decrement comment reply op reputation points", zap.Error(err))
+			tx.Rollback()
+			return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to decrement comment reply op reputation points")
 		}
 
 		// TODO: Save to thread activity history
@@ -1462,6 +1668,22 @@ func (s *threadService) dislikeCommentReply(ctx context.Context, req request.Dis
 		s.cfg.Logger().ErrorWithContext(ctx, "[dislikeCommentReply] Failed to save thread comment reply activity", zap.Error(err))
 		tx.Rollback()
 		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to save thread comment reply activity")
+	}
+
+	updateUserValues := map[string]interface{}{
+		"reputation_points": constants.DEFAULT_DECREMENT_REPUTATION,
+		"updated_by":        req.UserEmail,
+	}
+
+	if shouldDoubleDecrementUserReputationPoints {
+		updateUserValues["reputation_points"] = constants.DEFAULT_DECREMENT_REPUTATION * 2
+	}
+
+	err = s.userRepo.DecrementUserReputationPointsTx(threadCommentReply.UserID, updateUserValues, tx)
+	if err != nil {
+		s.cfg.Logger().ErrorWithContext(ctx, "[dislikeCommentReply] Failed to decrement comment reply op reputation points", zap.Error(err))
+		tx.Rollback()
+		return oops.Code(response.ServerError.AsString()).With(httpresp.StatusCodeCtxKey, http.StatusInternalServerError).Errorf("Failed to decrement comment reply op reputation points")
 	}
 
 	err = tx.Commit()
